@@ -19,4 +19,7 @@ void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_modul
 	init_interrupts();
 	init_tty();
 	clear_screen();
+	char* p = (char*)0xa0000;
+    p[0] = 4;
+
 }

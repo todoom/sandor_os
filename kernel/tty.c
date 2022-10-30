@@ -28,15 +28,19 @@ uint8_t in_scancode();
 char in_char();
 
 void init_tty() {
-	tty_buffer = alloc_virt_pages(&kernel_address_space, NULL, 0xb8000, 1, PAGE_PRESENT | PAGE_WRITABLE);
-	tty_width = *((uint16_t*)0x44A);
+	tty_buffer = alloc_virt_pages(NULL, 0xb8000, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	void *vaddr = alloc_virt_pages(NULL, 0, 1, PAGE_PRESENT | PAGE_WRITABLE);
+	//void *vaddr = (void*)0x100000;
+	//map_pages(vaddr, 0, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	tty_width = *((uint16_t*)(0x44A + (size_t)vaddr));
 	tty_height = 25;
-	tty_io_port = *((uint16_t*)0x463);
-	cursor = (*((uint8_t*)0x451)) * tty_width + (*((uint8_t*)0x450));
+	tty_io_port = *((uint16_t*)(0x463 + (size_t)vaddr));
+	cursor = (*((uint8_t*)(0x451 + (size_t)vaddr))) * tty_width + (*((uint8_t*)(0x450 + (size_t)vaddr)));
 	text_attr = 7;
 	key_buffer_head = 0;
 	key_buffer_tail = 0;
 	set_int_handler(irq_base + 1, keyboard_int_handler, 0x8E);
+
 }
 
 void out_char(char chr) {
@@ -186,6 +190,7 @@ char in_char(bool wait) {
 	} while (wait && (!chr));
 	return chr;
 } 
+
 void* in_string()
 {
 	char chr;
@@ -229,39 +234,3 @@ void* in_string()
 	return buffer;
 }
 
-/*
-void in_string(char *buffer, size_t buffer_size)
-{
-	char chr;
-	size_t position = 0;
-	do
-	{
-		chr = in_char(true);
-		switch (chr)
-		{
-			case 0:
-				break;
-			case 8:
-				if (position > 0)
-				{
-					position--;
-					move_cursor(cursor - 1);
-					out_char(0);
-					move_cursor(cursor - 1);
-				}
-				break;
-			case '\n':
-				out_char('\n');
-				break;
-			default:
-				if (position < buffer_size - 1)
-				{
-					buffer[position] = chr;
-					position++;
-					out_char(chr);
-				}
-		}
-	} while(chr != '\n');
-	buffer[position] = 0;
-}
-*/

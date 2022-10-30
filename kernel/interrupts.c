@@ -22,7 +22,7 @@ void init_PIC();
 void init_sys_timer();
 
 void init_interrupts() {
-	idt = alloc_virt_pages(&kernel_address_space, NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	idt = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
 	memset(idt, 0, 256 * sizeof(IntDesc));
 	IDTR idtr = {256 * sizeof(IntDesc), idt};
 	asm("lidt (,%0,)"::"a"(&idtr));

@@ -7,9 +7,8 @@ char commands[NCOMMAND][COMMAND_SIZE] = {"help\0", "pd\0", "vd\0"};
 
 void help(int argc, char** argv)
 {
-	printf("FEMA - 101\n");
-	printf("Police - 102\n");
-	printf("Ambulance - 103\n");
+	printf("pd - physical dump\n");
+	printf("vd - virtual dump\n");
 }
 void physdump(int argc, char** argv)
 {

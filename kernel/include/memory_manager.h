@@ -31,11 +31,6 @@ extern uint32_t KERNEL_END[];
 #define TEMP_PAGE 0xFFFFF000 
 #define TEMP_PAGE_INFO (KERNEL_PAGE_TABLE + ((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr))
 
-#define USER_MEMORY_START ((void*)0)
-#define USER_MEMORY_END ((void*)0x7FFFFFFF)
-#define KERNEL_MEMORY_START ((void*)0x80000000)
-#define KERNEL_MEMORY_END ((void*)(KERNEL_BASE))
-
 typedef size_t physaddr;
 
 typedef struct {
@@ -51,17 +46,25 @@ typedef struct {
 	uint32_t acpi_ext_attrs;
 } __attribute__((packed)) MemoryMapEntry;
 
+/*
 typedef enum {
 	VMB_RESERVED,
 	VMB_MEMORY,
 	VMB_IO_MEMORY
 } VirtMemoryBlockType;
-
+*/
 typedef struct {
-	VirtMemoryBlockType type;
+	//VirtMemoryBlockType type;
 	void *base;
-	size_t length;
+	size_t size;
 } VirtMemoryBlock;
+
+typedef struct
+{
+	size_t block_count;
+	VirtMemoryBlock* blocks_table;
+	size_t table_size;
+} VirtMemory;
 
 typedef struct {
 	physaddr page_dir;
@@ -84,27 +87,26 @@ typedef struct
 	DynamicMemoryBlock* blocks;
 } DynamicMemory;
 
-
-extern physaddr kernel_page_dir;
-extern size_t memory_size;
-extern AddressSpace kernel_address_space;
 extern DynamicMemory dynamic_memory;
+extern VirtMemory virt_memory;
 
-extern void init_memory_manager(void *memory_map) asm ("init_memory_manager");
+void init_memory_manager(void *memory_map) asm ("init_memory_manager");
 
-void temp_map_page(physaddr addr);
-bool map_pages(physaddr page_dir, void *vaddr, physaddr paddr, size_t count, unsigned int flags);
-physaddr get_physaddr(void *vaddr);
-
+void temp_map_page(physaddr addr) asm ("temp_map_page");
+physaddr get_physaddr(void *vaddr) asm ("get_physaddr");
 size_t get_free_memory_size();
-physaddr alloc_phys_pages(size_t count);
-void free_phys_pages(physaddr base, size_t count);
 
-void create_memory_block(void* memory_map, physaddr paddr, size_t size, size_t type);
-void cut_memory_block(void* memory_map, physaddr memory_block_paddr, size_t cut_size);
+bool map_pages(void *vaddr, physaddr paddr, size_t count, unsigned int flags) asm("map_pages");
+bool unmap_pages(void *vaddr, size_t count) asm("unmap_pages");
 
-void *alloc_virt_pages(AddressSpace *address_space, void *vaddr, physaddr paddr, size_t count, unsigned int flags);
-bool free_virt_pages(AddressSpace *address_space, void *vaddr, unsigned int flags);
+physaddr alloc_phys_pages(size_t count) asm("alloc_phys_pages");
+void free_phys_pages(physaddr base, size_t count) asm("free_phys_pages");
+
+extern void *alloc_virt_pages(void *vaddr, physaddr paddr, size_t count, unsigned int flags) asm("alloc_virt_pages");
+extern size_t free_virt_pages(void *vaddr) asm("free_virt_pages");
+
+void* add_virt_block(size_t size) asm("add_virt_block");
+size_t del_virt_block(void* base) asm("del_virt_block");
 
 extern void* kmalloc(size_t size) asm("kmalloc");
 extern void kfree(void* ptr) asm("kfree");

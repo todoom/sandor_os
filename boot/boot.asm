@@ -414,6 +414,7 @@ boot2:
 	jmp 0x9000
 ; Запуск 32-разрядного ядра
  .start32:
+ 	
 	; Выводим уведомление о запуске 32-битного ядра
 	mov si, start32_msg
 	call write_str
@@ -436,6 +437,7 @@ boot2:
 	mov di, 0x1000
 	rep stosw
 	; Заполним каталог страниц
+
 	mov word[0x1000], 0x2000 + 111b
 	mov word[0x1004], 0x2000 + 111b
 	mov word[0x1FFC], 0x3000 + 111b
