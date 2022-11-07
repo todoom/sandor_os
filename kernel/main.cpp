@@ -4,6 +4,7 @@
 #include "include/tty.h"
 #include "include/shell.h"
 #include "include/List.hpp"
+#include "include/ATA.h"
 
 typedef struct 
 {
@@ -19,7 +20,10 @@ void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_modul
 	init_interrupts();
 	init_tty();
 	clear_screen();
-	char* p = (char*)0xa0000;
-    p[0] = 4;
 
+	init_ATA_devices();
+
+	void *buffer = kmalloc(0x200);
+	read_ATA(ata_devices[0], 1, 1, buffer);
+	printf("%x\n", get_physaddr(buffer));
 }

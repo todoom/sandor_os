@@ -1,8 +1,6 @@
 #include "include/ATA.h"
 #include "include/stdlib.h"
 #include "include/memory_manager.h"
-#include "include/List.h"
-#include "include/tty.h"
 
 bool hd_busy(int port)
 {

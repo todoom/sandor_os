@@ -28,7 +28,7 @@ typedef struct AtaDevice
 } AtaDevice;
 
 AtaDevice ata_devices[4];
-void init_ATA_devices();
-void read_ATA(AtaDevice ata_device, size_t lba, int count, void* buffer);
-void write_ATA(AtaDevice ata_device, size_t lba, int count, void* buffer);
+extern void init_ATA_devices() asm("init_ATA_devices");
+extern void read_ATA(AtaDevice ata_device, size_t lba, int count, void* buffer) asm("read_ATA");
+extern void write_ATA(AtaDevice ata_device, size_t lba, int count, void* buffer) asm("write_ATA");
 #endif
