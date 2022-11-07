@@ -67,6 +67,6 @@ void set_int_handler(uint8_t index, void *handler, uint8_t type) {
 	asm("sti");
 }
 
-IRQ_HANDLER(timer_int_handler) {
+/*IRQ_HANDLER(timer_int_handler) {
 	//(*((char*)(0xB8000)))++;
-}
+}*/

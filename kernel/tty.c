@@ -37,7 +37,7 @@ void init_tty() {
 	text_attr = 7;
 	key_buffer_head = 0;
 	key_buffer_tail = 0;
-	set_int_handler(irq_base + 1, keyboard_int_handler, 0x8E);
+	//set_int_handler(irq_base + 1, keyboard_int_handler, 0x8E);
 
 }
 
@@ -134,7 +134,7 @@ void printf(char *fmt, ...) {
 	va_end(args);
 }
 
-IRQ_HANDLER(keyboard_int_handler) {
+/*IRQ_HANDLER(keyboard_int_handler) {
 	uint8_t key_code;
 	inportb(0x60, key_code);
 	if (key_buffer_tail >= KEY_BUFFER_SIZE) {
@@ -146,7 +146,7 @@ IRQ_HANDLER(keyboard_int_handler) {
 	inportb(0x61, status);
 	status |= 1;
 	outportb(0x61, status);
-} 
+} */
 
 uint8_t in_scancode()
 {

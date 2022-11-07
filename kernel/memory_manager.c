@@ -13,7 +13,7 @@ DynamicMemory dynamic_memory;
 void init_memory_manager(void* memory_map) 
 {
 	//init physical memory
-	asm("movl %%cr3, %0":"=a"(kernel_page_dir));
+	asm("mov %%cr3, %0":"=a"(kernel_page_dir));
 	memory_size = 0x100000;
 	free_page_count = 0;
 	free_phys_memory_pointer = -1;
@@ -62,7 +62,7 @@ void temp_map_page(physaddr page)
 physaddr get_physaddr(void *vaddr) 
 {
 	physaddr page_dir;
-	asm("movl %%cr3, %0":"=a"(page_dir));
+	asm("mov %%cr3, %0":"=a"(page_dir));
 
 	size_t pdindex = (size_t)vaddr >> 22;
 	size_t ptindex = (size_t)vaddr >> 12 & 0x3ff;
@@ -210,7 +210,7 @@ void free_phys_pages(physaddr base, size_t count)
 bool map_pages(void *vaddr, physaddr paddr, size_t count, unsigned int flags) 
 {
 	physaddr page_dir;
-	asm("movl %%cr3, %0":"=a"(page_dir));
+	asm("mov %%cr3, %0":"=a"(page_dir));
 
 	for (; count; count--)
 	{
@@ -245,7 +245,7 @@ bool map_pages(void *vaddr, physaddr paddr, size_t count, unsigned int flags)
 bool unmap_pages(void *vaddr, size_t count)
 {
 	physaddr page_dir;
-	asm("movl %%cr3, %0":"=a"(page_dir));
+	asm("mov %%cr3, %0":"=a"(page_dir));
 
 	for (; count; count--)
 	{
