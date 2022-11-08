@@ -16,14 +16,14 @@ extern void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boo
 
 void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_module_list) 
 {
+	while(true){};
 	init_memory_manager(memory_map);
 	init_interrupts();
 	init_tty();
 	clear_screen();
 
-	init_ATA_devices();
+	//init_ATA_devices();
 
-	void *buffer = kmalloc(0x200);
-	read_ATA(ata_devices[0], 1, 1, buffer);
-	printf("%x\n", get_physaddr(buffer));
+	char* string = "Hello, world!\0";
+	printf("%x\n", 234);
 }

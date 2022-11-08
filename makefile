@@ -30,10 +30,9 @@ ATA.o: kernel/ATA.c
 
 create_iso:
 	mkdir -p isodir/boot/grub
-	cp bin/kernel.bin isodir/boot/myos.bin
+	cp bin/kernel.bin isodir/boot/kernel.bin
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o os.iso isodir
 
 clean:
 	rm -rf *.o 
-	rm -r isodir
