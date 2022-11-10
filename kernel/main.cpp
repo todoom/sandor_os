@@ -24,6 +24,5 @@ void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_modul
 
 	//init_ATA_devices();
 
-	char* string = "Hello, world!\0";
 	printf("%x\n", 234);
 }

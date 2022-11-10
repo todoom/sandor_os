@@ -15,13 +15,14 @@ SECTIONS
 	   Next we'll put the .text section. */
 	.text BLOCK(4K) : ALIGN(4K)
 	{
-		*(.multiboot)
+		_KERNEL_CODE_BASE = .;
 		*(.text)
 	}
  
 	/* Read-only data. */
 	.rodata BLOCK(4K) : ALIGN(4K)
 	{
+		_KERNEL_DATA_BASE = .;
 		*(.rodata)
 	}
  
@@ -34,8 +35,13 @@ SECTIONS
 	/* Read-write data (uninitialized) and stack */
 	.bss BLOCK(4K) : ALIGN(4K)
 	{
+		_KERNEL_BSS_BASE = .;
 		*(COMMON)
 		*(.bss)
+	}
+	.empty ALIGN(0x1000) - 1 : {
+		BYTE(0)
+		_KERNEL_END = .;
 	}
  
 	/* The compiler may produce other sections, by default it will put them in
