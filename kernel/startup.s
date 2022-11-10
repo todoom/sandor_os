@@ -2,6 +2,7 @@ format ELF
 
 public _start
 extrn kernel_main
+extrn 
 extrn KERNEL_CODE_BASE
 extrn KERNEL_DATA_BASE
 extrn KERNEL_BSS_BASE
@@ -19,6 +20,12 @@ dd FLAGS
 dd CHECKSUM
 
 _start:
+
+	xor ax, ax
+	mov cx, 3 * 4096 / 2
+	mov di, page_table
+	rep stosw
+
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
 	call kernel
  @@:
