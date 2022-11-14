@@ -1,0 +1,12 @@
+
+bin/kernel.bin
+bin/kernel.elf
+bx_enh_dbg.ini
+bx_enh_dbg.ini
+isodir/boot/grub/grub.cfg
+isodir/boot/grub/grub.cfg
+isodir/boot/kernel.bin
+bx_enh_dbg.ini
+isodir/boot/myos.bin
+isodir/etc/default/grub
+os.iso

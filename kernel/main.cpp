@@ -12,17 +12,12 @@ typedef struct
 	unsigned long long size;
 } BootModuleInfo;
 
-extern void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_module_list) asm ("kernel_main");
+extern void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_module_list) asm("kernel_main");
 
 void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_module_list) 
 {
-	while(true){};
 	init_memory_manager(memory_map);
 	init_interrupts();
 	init_tty();
 	clear_screen();
-
-	//init_ATA_devices();
-
-	printf("%x\n", 234);
 }

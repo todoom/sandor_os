@@ -90,7 +90,7 @@ typedef struct
 extern DynamicMemory dynamic_memory;
 extern VirtMemory virt_memory;
 
-void init_memory_manager(void *memory_map) asm ("init_memory_manager");
+extern void init_memory_manager(void *memory_map) asm ("init_memory_manager");
 
 void temp_map_page(physaddr addr) asm ("temp_map_page");
 physaddr get_physaddr(void *vaddr) asm ("get_physaddr");

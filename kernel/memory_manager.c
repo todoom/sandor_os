@@ -13,6 +13,7 @@ DynamicMemory dynamic_memory;
 void init_memory_manager(void* memory_map) 
 {
 	//init physical memory
+	while(1){}
 	asm("mov %%cr3, %0":"=a"(kernel_page_dir));
 	memory_size = 0x100000;
 	free_page_count = 0;
