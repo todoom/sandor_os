@@ -70,8 +70,3 @@ page_table:
 section ".kernel_page_table" align 0x1000
 kernel_page_table:
 	rb 0x999
-
-; section ".page_table" 
-; align 4
-; trash:
-; 	rb 0x1
