@@ -10,3 +10,5 @@ bx_enh_dbg.ini
 isodir/boot/myos.bin
 isodir/etc/default/grub
 os.iso
+isodir/boot/kernel.elf
+logfile

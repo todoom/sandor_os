@@ -3,32 +3,49 @@ ENTRY(_start)
 SECTIONS
 {
 	. = 0x100000;
- 	_KERNEL_BASE = .;
-	.text BLOCK(4K) : ALIGN(4K)
+ 	.multiboot.data : 
+ 	{
+        *(.multiboot.data)
+    }
+   	.multiboot.text : 
+    {
+        *(.multiboot.text)
+    }
+
+    . += 0xC0000000;
+    KERNEL_BASE = . & ~(0xfff);
+	.text : AT (ADDR(.text) - 0xC0000000)
 	{
-		_KERNEL_CODE_BASE = .;
+		KERNEL_CODE_BASE = .;
 		*(.text)
 	}
-	.rodata BLOCK(4K) : ALIGN(4K)
+	.rodata ALIGN(4K) : AT (ADDR(.rodata) - 0xC0000000)
 	{
-		_KERNEL_DATA_BASE = .;
+		KERNEL_DATA_BASE = .;
 		*(.rodata)
 	}
  
-	.data BLOCK(4K) : ALIGN(4K)
+	.data ALIGN(4K) : AT (ADDR(.data) - 0xC0000000)
 	{
 		*(.data)
 	}
  
-	.bss BLOCK(4K) : ALIGN(4K)
+	.bss ALIGN(4K) : AT (ADDR(.bss) - 0xC0000000)
 	{
-		_KERNEL_BSS_BASE = .;
+		KERNEL_BSS_BASE = .;
 		*(COMMON)
 		*(.bss)
 	}
-	.empty ALIGN(0x1000) - 1 : {
+	.page_table ALIGN(4K) : AT (ADDR(.page_table) - 0xC0000000)
+	{
+		*(.page_table)
+		KERNEL_PAGE_TABLE = .;
+		*(.kernel_page_table);
+	}
+	.empty ALIGN(0x1000) - 1 : AT (ADDR(.empty) - 0xC0000000)
+	{
 		BYTE(0)
-		_KERNEL_END = .;
+		PROVIDE(KERNEL_END = .);
 	}
  
 }

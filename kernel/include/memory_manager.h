@@ -26,10 +26,11 @@ extern uint32_t KERNEL_CODE_BASE[];
 extern uint32_t KERNEL_DATA_BASE[];
 extern uint32_t KERNEL_BSS_BASE[];
 extern uint32_t KERNEL_END[];
+extern uint32_t KERNEL_PAGE_TABLE[];
 
-#define KERNEL_PAGE_TABLE 0xFFFFE000 
-#define TEMP_PAGE 0xFFFFF000 
-#define TEMP_PAGE_INFO (KERNEL_PAGE_TABLE + ((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr))
+//#define KERNEL_PAGE_TABLE 0xFFFFE000 
+#define TEMP_PAGE 0x3FF000 //0x3ff000 
+#define TEMP_PAGE_INFO (KERNEL_PAGE_TABLE + ((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr)) // 0x108FFC
 
 typedef size_t physaddr;
 

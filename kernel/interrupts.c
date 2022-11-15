@@ -32,7 +32,7 @@ void init_interrupts() {
 	init_PIC();
 	init_sys_timer();
 
-	set_int_handler(irq_base, timer_int_handler, 0x8E);
+	//set_int_handler(irq_base, timer_int_handler, 0x8E);
 }
 void init_PIC()
 {

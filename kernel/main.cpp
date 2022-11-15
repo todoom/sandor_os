@@ -16,8 +16,11 @@ extern void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boo
 
 void kernel_main(char boot_disk_id, void *memory_map, BootModuleInfo *boot_module_list) 
 {
+	while(true){}
 	init_memory_manager(memory_map);
 	init_interrupts();
 	init_tty();
 	clear_screen();
+
+	printf("%x\n", 12345);
 }
