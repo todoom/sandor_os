@@ -1,6 +1,7 @@
 #include "include/stdlib.h"
 #include "include/memory_manager.h"
 #include "include/tty.h"
+#include "include/multiboot.h"
 
 size_t free_page_count;
 physaddr free_phys_memory_pointer;

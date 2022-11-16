@@ -24,9 +24,10 @@ dd CHECKSUM
 section ".multiboot.text" executable
 
 _start:
-	mov esp, kernel_stack - 0xc0000000 + KERNEL_STACK_SIZE
+	mov esp, kernel_stack + KERNEL_STACK_SIZE
 
 	mov dword[page_table - 0xc0000000 + 0xc00], kernel_page_table - 0xc0000000 + 111b
+	mov dword[page_table - 0xc0000000], kernel_page_table - 0xc0000000 + 111b
 	;количество страниц
 	mov eax, KERNEL_END
 	sub eax, KERNEL_BASE 
