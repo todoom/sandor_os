@@ -2,6 +2,7 @@
 #define MEMORY_MANAGER_H
 
 #include "stdlib.h"
+#include "multiboot.h"
 
 #define PAGE_SIZE 0x1000
 #define PAGE_OFFSET_BITS 12
@@ -28,10 +29,8 @@ extern uint32_t KERNEL_BSS_BASE[];
 extern uint32_t KERNEL_END[];
 extern uint32_t KERNEL_PAGE_TABLE[];
 
-//#define KERNEL_PAGE_TABLE 0xFFFFE000 
-#define TEMP_PAGE 0x3FF000 //0x3ff000 
-#define TEMP_PAGE_INFO (KERNEL_PAGE_TABLE + ((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr)) // 0x108FFC
-
+#define TEMP_PAGE 0xC03FF000 
+#define TEMP_PAGE_INFO 0xc0109ffc // TODO ((size_t)KERNEL_PAGE_TABLE + (((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr))) 
 typedef size_t physaddr;
 
 typedef struct {
@@ -90,8 +89,9 @@ typedef struct
 
 extern DynamicMemory dynamic_memory;
 extern VirtMemory virt_memory;
+extern physaddr free_phys_memory_pointer;
 
-extern void init_memory_manager(void *memory_map) asm ("init_memory_manager");
+extern void init_memory_manager(multiboot_uint32_t memory_map) asm ("init_memory_manager");
 
 void temp_map_page(physaddr addr) asm ("temp_map_page");
 physaddr get_physaddr(void *vaddr) asm ("get_physaddr");

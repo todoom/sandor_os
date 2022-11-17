@@ -3,6 +3,7 @@ ENTRY(_start)
 SECTIONS
 {
 	. = 0x100000;
+	KERNEL_BASE = .;
  	.multiboot.data : 
  	{
         *(.multiboot.data)
@@ -13,7 +14,6 @@ SECTIONS
     }
 
     . += 0xC0000000;
-    KERNEL_BASE = . & ~(0xfff);
 	.text : AT (ADDR(.text) - 0xC0000000)
 	{
 		KERNEL_CODE_BASE = .;
@@ -36,16 +36,16 @@ SECTIONS
 		*(COMMON)
 		*(.bss)
 	}
-	.page_table ALIGN(4K) : AT (ADDR(.page_table) - 0xC0000000)
+	.page_dir ALIGN(4K) : AT (ADDR(.page_dir) - 0xC0000000)
 	{
-		*(.page_table)
+		*(.page_dir)
 		KERNEL_PAGE_TABLE = .;
 		*(.kernel_page_table);
 	}
 	.empty ALIGN(0x1000) - 1 : AT (ADDR(.empty) - 0xC0000000)
 	{
 		BYTE(0)
-		PROVIDE(KERNEL_END = .);
+		KERNEL_END = .;
 	}
  
 }

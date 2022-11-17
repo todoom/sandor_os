@@ -11,42 +11,44 @@ VirtMemory virt_memory;
 DynamicMemory dynamic_memory;
 
 
-void init_memory_manager(void* memory_map) 
+void init_memory_manager(multiboot_uint32_t memory_map) 
 {
 	//init physical memory
 	asm("mov %%cr3, %0":"=a"(kernel_page_dir));
 	memory_size = 0x100000;
 	free_page_count = 0;
 	free_phys_memory_pointer = -1;
-	MemoryMapEntry *entry;
+	multiboot_memory_map_t *entry;
 	for (entry = memory_map; entry->type; entry++) 
 	{
-		if ((entry->type == 1) && (entry->base >= 0x100000)) 
-		{
-			free_phys_pages(entry->base, entry->length >> PAGE_OFFSET_BITS);
-			memory_size += entry->length;
+		if ((entry->type == 1) && (entry->addr >= 0x100000)) 
+		{	
+			// if (entry->addr == 0x100000)
+			// {
+			// 	entry->addr += KERNEL_END - 0xc0000000 - KERNEL_BASE - 0x100000;
+			// }
+			free_phys_pages(entry->addr, entry->len >> PAGE_OFFSET_BITS);
+			memory_size += entry->len;
 		}
 	}
+
 	//init virtual memory
 	virt_memory.block_count = 0;
-	virt_memory.blocks_table = (VirtMemoryBlock*)0x0;
+	virt_memory.blocks_table = (VirtMemoryBlock*)KERNEL_END;
 	virt_memory.table_size = 1;
 
 	map_pages(virt_memory.blocks_table, alloc_phys_pages(virt_memory.table_size), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-	virt_memory.blocks_table[virt_memory.block_count].base = 0;
+	virt_memory.blocks_table[virt_memory.block_count].base = KERNEL_END;
 	virt_memory.blocks_table[virt_memory.block_count].size = 1;
 	virt_memory.block_count++;
-	
-	map_pages((void*)KERNEL_CODE_BASE, get_physaddr((void*)KERNEL_CODE_BASE),
-		((size_t)KERNEL_DATA_BASE - (size_t)KERNEL_CODE_BASE) >> PAGE_OFFSET_BITS, PAGE_PRESENT | PAGE_GLOBAL);
-	map_pages((void*)KERNEL_DATA_BASE, \
-			  get_physaddr((void*)KERNEL_DATA_BASE), \
-			  ((size_t)KERNEL_END - (size_t)KERNEL_DATA_BASE) >> PAGE_OFFSET_BITS, \
-			  PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-	map_pages((void*)KERNEL_PAGE_TABLE, get_physaddr((void*)KERNEL_PAGE_TABLE), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);	
 
+	virt_memory.blocks_table[virt_memory.block_count].base = ((size_t)KERNEL_BASE + 0xc0000000);
+	virt_memory.blocks_table[virt_memory.block_count].size = ((size_t)KERNEL_END - 0xc0000000 - (size_t)KERNEL_BASE) >> PAGE_OFFSET_BITS;
+	virt_memory.block_count++;
+	
 	dynamic_memory.block_count = 0;
 	dynamic_memory.blocks = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+
 }
 
 static inline void flush_page_cache(void *addr) 
@@ -74,6 +76,7 @@ physaddr get_physaddr(void *vaddr)
 	temp_map_page(page_table);
 	return ((physaddr*)TEMP_PAGE)[ptindex];
 } 
+
 
 physaddr alloc_phys_pages(size_t count) 
 {
