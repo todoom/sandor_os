@@ -22,7 +22,8 @@
 #define PAGE_MODIFIED		(1 << 6)
 #define PAGE_GLOBAL		    (1 << 8)
 
-extern uint32_t KERNEL_BASE[];
+extern uint32_t KERNEL_BASE_VMA[];
+extern uint32_t KERNEL_BASE_LMA[];
 extern uint32_t KERNEL_CODE_BASE[];
 extern uint32_t KERNEL_DATA_BASE[];
 extern uint32_t KERNEL_BSS_BASE[];
@@ -30,7 +31,7 @@ extern uint32_t KERNEL_END[];
 extern uint32_t KERNEL_PAGE_TABLE[];
 
 #define TEMP_PAGE 0xC03FF000 
-#define TEMP_PAGE_INFO 0xc0109ffc // TODO ((size_t)KERNEL_PAGE_TABLE + (((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr))) 
+#define TEMP_PAGE_INFO 0xc0009ffc // TODO ((size_t)KERNEL_PAGE_TABLE + (((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr))) 
 typedef size_t physaddr;
 
 typedef struct {

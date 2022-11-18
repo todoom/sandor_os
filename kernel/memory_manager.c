@@ -23,10 +23,10 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	{
 		if ((entry->type == 1) && (entry->addr >= 0x100000)) 
 		{	
-			// if (entry->addr == 0x100000)
-			// {
-			// 	entry->addr += KERNEL_END - 0xc0000000 - KERNEL_BASE - 0x100000;
-			// }
+			if (entry->addr == KERNEL_BASE_LMA)
+			{
+				entry->addr += KERNEL_END - KERNEL_BASE_VMA;
+			}
 			free_phys_pages(entry->addr, entry->len >> PAGE_OFFSET_BITS);
 			memory_size += entry->len;
 		}
@@ -38,14 +38,19 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	virt_memory.table_size = 1;
 
 	map_pages(virt_memory.blocks_table, alloc_phys_pages(virt_memory.table_size), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	
+	virt_memory.blocks_table[virt_memory.block_count].base = ((size_t)KERNEL_BASE_VMA);
+	virt_memory.blocks_table[virt_memory.block_count].size = ((size_t)KERNEL_END - (size_t)KERNEL_BASE_VMA) >> PAGE_OFFSET_BITS;
+	virt_memory.block_count++;
+	
 	virt_memory.blocks_table[virt_memory.block_count].base = KERNEL_END;
 	virt_memory.blocks_table[virt_memory.block_count].size = 1;
 	virt_memory.block_count++;
 
-	virt_memory.blocks_table[virt_memory.block_count].base = ((size_t)KERNEL_BASE + 0xc0000000);
-	virt_memory.blocks_table[virt_memory.block_count].size = ((size_t)KERNEL_END - 0xc0000000 - (size_t)KERNEL_BASE) >> PAGE_OFFSET_BITS;
+	virt_memory.blocks_table[virt_memory.block_count].base = TEMP_PAGE;
+	virt_memory.blocks_table[virt_memory.block_count].size = 1;
 	virt_memory.block_count++;
-	
+
 	dynamic_memory.block_count = 0;
 	dynamic_memory.blocks = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
 
@@ -273,7 +278,6 @@ bool unmap_pages(void *vaddr, size_t count)
 void* add_virt_block(size_t size)
 {
 	int i = 0;
-	void *ret = (void*)-1;
 	VirtMemoryBlock *cur_block = &(virt_memory.blocks_table[i]);
 	VirtMemoryBlock *next_block = &(virt_memory.blocks_table[i + 1]);
 	
@@ -286,7 +290,7 @@ void* add_virt_block(size_t size)
 
 		virt_memory.block_count += 1;
 
-		ret = cur_block->base;
+		return cur_block->base;
 	}
 	for (; i < virt_memory.block_count - 1; i++, cur_block = &(virt_memory.blocks_table[i]), next_block = &(virt_memory.blocks_table[i + 1]))
 	{
@@ -299,18 +303,14 @@ void* add_virt_block(size_t size)
 
 			virt_memory.block_count += 1;
 
-			ret = next_block->base;			
+			return next_block->base;			
 		}
 	}
-	if (ret == (void*)-1)
-	{
-		next_block->base = cur_block->base + (cur_block->size << PAGE_OFFSET_BITS);
-		next_block->size = size;
-		virt_memory.block_count += 1;
+	next_block->base = cur_block->base + (cur_block->size << PAGE_OFFSET_BITS);
+	next_block->size = size;
+	virt_memory.block_count += 1;
 
-		ret = next_block->base;
-	}	
-	return ret;
+	return next_block->base;
 }
 size_t del_virt_block(void* base)
 {

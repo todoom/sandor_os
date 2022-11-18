@@ -3,11 +3,10 @@ use32
 
 public _start
 extrn kernel_main
-extrn KERNEL_BASE
-extrn KERNEL_CODE_BASE
-extrn KERNEL_DATA_BASE
-extrn KERNEL_BSS_BASE
 extrn KERNEL_END
+KERNEL_BASE_VMA equ 0xc0000000
+KERNEL_BASE_LMA equ 0x00100000
+VMA_MINUS_LMA equ (KERNEL_BASE_VMA - KERNEL_BASE_LMA)
 
 MAGIC_NUMBER equ 0x1BADB002    
 FLAGS        equ 0x0       
@@ -31,37 +30,32 @@ _start:
 
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
 	mov ebx, esp
-
-	mov dword[page_dir - 0xc0000000], temp_page_table - 0xc0000000 + 111b
+	
+	mov dword[page_dir - VMA_MINUS_LMA], temp_page_table - VMA_MINUS_LMA + 111b
 	mov ecx, 1024
-	mov edi, temp_page_table - 0xc0000000
+	mov edi, temp_page_table - VMA_MINUS_LMA
 	mov eax, 11b
 @@:
 	stosd
 	add eax, 0x1000
 	loop @b
 
-	mov dword[page_dir - 0xc0000000 + 0xc00], kernel_page_table - 0xc0000000 + 111b
+	mov dword[page_dir - VMA_MINUS_LMA + (KERNEL_BASE_VMA shr 22) * 4], kernel_page_table - VMA_MINUS_LMA + 111b
 	;количество страниц
-	mov eax, KERNEL_END - 0xc0000000
-	sub eax, KERNEL_BASE 
+	mov eax, KERNEL_END
+	sub eax, KERNEL_BASE_VMA 
 	mov ebx, 0x00001000
 	div ebx
 	mov ecx, eax
 	;смещение
-	mov eax, KERNEL_BASE
-	shr eax, 12
-	and eax, 0x3ff
-	shl eax, 2
-	mov edi, kernel_page_table - 0xc0000000
-	add edi, eax
-	mov eax, KERNEL_BASE + 11b
+	mov edi, kernel_page_table - VMA_MINUS_LMA + KERNEL_BASE_VMA shr 12 and 0x3ff * 4
+	mov eax, KERNEL_BASE_LMA + 11b
 @@:
 	stosd
 	add eax, 0x1000
 	loop @b
 
-	mov eax, page_dir - 0xc0000000
+	mov eax, page_dir - VMA_MINUS_LMA
 	mov cr3, eax
 
 	mov eax, cr0
@@ -70,6 +64,7 @@ _start:
 
 	push [multiboot_header_magic]
 	push [multiboot_info]
+	
 	call kernel_main
 @@:
  	hlt

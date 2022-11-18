@@ -4,6 +4,7 @@
 #include "stdlib.h"
 #include "memory_manager.h"
 
+//TODO
 #define foreach(i, list) for(item_t<type> *i = list->head; i != NULL; i = i->next)
 
 template <typename type>

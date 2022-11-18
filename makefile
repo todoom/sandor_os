@@ -19,7 +19,7 @@ tty.o: kernel/tty.c
 interrupts.o: kernel/interrupts.c
 	i386-elf-gcc -c -m32 -ffreestanding -nostdlib -o interrupts.o kernel/interrupts.c 
 
-memory_manager.o: kernel/memory_manager.o
+memory_manager.o: kernel/memory_manager.c
 	i386-elf-gcc -c -m32 -ffreestanding -nostdlib -o memory_manager.o kernel/memory_manager.c 
 
 shell.o: kernel/shell.c
