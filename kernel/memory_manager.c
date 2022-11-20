@@ -9,7 +9,8 @@ physaddr kernel_page_dir;
 size_t memory_size;
 VirtMemory virt_memory;
 DynamicMemory dynamic_memory;
-
+void *TEMP_PAGE;
+size_t *TEMP_PAGE_INFO;
 
 void init_memory_manager(multiboot_uint32_t memory_map) 
 {
@@ -19,41 +20,43 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	free_page_count = 0;
 	free_phys_memory_pointer = -1;
 	multiboot_memory_map_t *entry;
+
+	TEMP_PAGE = (size_t)KERNEL_BASE_VMA + (PAGE_TABLE_INDEX_MASK << PAGE_OFFSET_BITS);
+	TEMP_PAGE_INFO = KERNEL_PAGE_TABLE + ((((size_t)TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) << 0);
+
 	for (entry = memory_map; entry->type; entry++) 
 	{
 		if ((entry->type == 1) && (entry->addr >= 0x100000)) 
 		{	
 			if (entry->addr == KERNEL_BASE_LMA)
 			{
-				entry->addr += KERNEL_END - KERNEL_BASE_VMA;
+				entry->addr += (size_t)KERNEL_END - (size_t)KERNEL_BASE_VMA;
 			}
 			free_phys_pages(entry->addr, entry->len >> PAGE_OFFSET_BITS);
 			memory_size += entry->len;
 		}
 	}
-
 	//init virtual memory
 	virt_memory.block_count = 0;
 	virt_memory.blocks_table = (VirtMemoryBlock*)KERNEL_END;
 	virt_memory.table_size = 1;
 
 	map_pages(virt_memory.blocks_table, alloc_phys_pages(virt_memory.table_size), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-	
+	//kernel
 	virt_memory.blocks_table[virt_memory.block_count].base = ((size_t)KERNEL_BASE_VMA);
 	virt_memory.blocks_table[virt_memory.block_count].size = ((size_t)KERNEL_END - (size_t)KERNEL_BASE_VMA) >> PAGE_OFFSET_BITS;
 	virt_memory.block_count++;
-	
+	//virt memory table
 	virt_memory.blocks_table[virt_memory.block_count].base = KERNEL_END;
 	virt_memory.blocks_table[virt_memory.block_count].size = 1;
 	virt_memory.block_count++;
-
+	//temp page
 	virt_memory.blocks_table[virt_memory.block_count].base = TEMP_PAGE;
 	virt_memory.blocks_table[virt_memory.block_count].size = 1;
 	virt_memory.block_count++;
 
 	dynamic_memory.block_count = 0;
 	dynamic_memory.blocks = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-
 }
 
 static inline void flush_page_cache(void *addr) 

@@ -3,10 +3,9 @@ use32
 
 public _start
 extrn kernel_main
+extrn KERNEL_BASE_LMA
+extrn KERNEL_BASE_VMA
 extrn KERNEL_END
-KERNEL_BASE_VMA equ 0xc0000000
-KERNEL_BASE_LMA equ 0x00100000
-VMA_MINUS_LMA equ (KERNEL_BASE_VMA - KERNEL_BASE_LMA)
 
 MAGIC_NUMBER equ 0x1BADB002    
 FLAGS        equ 0x0       
@@ -31,31 +30,61 @@ _start:
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
 	mov ebx, esp
 	
-	mov dword[page_dir - VMA_MINUS_LMA], temp_page_table - VMA_MINUS_LMA + 111b
+	; ebx = VMA - LMA
+	mov ebx, KERNEL_BASE_VMA
+	sub ebx, KERNEL_BASE_LMA
+	
+	;eax = page_dir - KERNEL_BASE_VMA + KERNEL_BASE_LMA
+	;ecx = temp_page_table - KERNEL_BASE_VMA + KERNEL_BASE_LMA
+	mov eax, page_dir
+	sub eax, ebx
+	mov ecx, temp_page_table + 111b
+	sub ecx, ebx
+	mov dword[eax], ecx
+	;mov dword[page_dir - VMA_MINUS_LMA], temp_page_table - VMA_MINUS_LMA + 111b
 	mov ecx, 1024
-	mov edi, temp_page_table - VMA_MINUS_LMA
+	mov edi, temp_page_table
+	sub edi, ebx
 	mov eax, 11b
 @@:
 	stosd
 	add eax, 0x1000
 	loop @b
 
-	mov dword[page_dir - VMA_MINUS_LMA + (KERNEL_BASE_VMA shr 22) * 4], kernel_page_table - VMA_MINUS_LMA + 111b
+	;eax = page_dir - KERNEL_BASE_VMA + KERNEL_BASE_LMA + (KERNEL_BASE_VMA >> 22) * 4
+	;ecx = kernel_page_table - KERNEL_BASE_VMA + KERNEL_BASE_LMA + 111b
+	mov eax, KERNEL_BASE_VMA
+	shr eax, 22
+	shl eax, 2
+	add eax, page_dir
+	sub eax, ebx
+	mov ecx, kernel_page_table + 111b
+	sub ecx, ebx
+	mov dword[eax], ecx
+	;mov dword[page_dir - VMA_MINUS_LMA + (KERNEL_BASE_VMA shr 22) * 4], kernel_page_table - VMA_MINUS_LMA + 111b
 	;количество страниц
 	mov eax, KERNEL_END
 	sub eax, KERNEL_BASE_VMA 
-	mov ebx, 0x00001000
-	div ebx
+	mov ecx, 0x00001000
+	div ecx
 	mov ecx, eax
 	;смещение
-	mov edi, kernel_page_table - VMA_MINUS_LMA + KERNEL_BASE_VMA shr 12 and 0x3ff * 4
-	mov eax, KERNEL_BASE_LMA + 11b
+	mov edi, KERNEL_BASE_VMA
+	shr edi, 12
+	and edi, 0x3ff
+	shl edi, 2
+	add edi, kernel_page_table
+	sub edi, ebx
+	;mov edi, kernel_page_table - VMA_MINUS_LMA + KERNEL_BASE_VMA shr 12 and 0x3ff * 4
+	mov eax, KERNEL_BASE_LMA
+	add eax, 11b
 @@:
 	stosd
 	add eax, 0x1000
 	loop @b
 
-	mov eax, page_dir - VMA_MINUS_LMA
+	mov eax, page_dir
+	sub eax, ebx
 	mov cr3, eax
 
 	mov eax, cr0

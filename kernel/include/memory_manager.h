@@ -30,8 +30,12 @@ extern uint32_t KERNEL_BSS_BASE[];
 extern uint32_t KERNEL_END[];
 extern uint32_t KERNEL_PAGE_TABLE[];
 
-#define TEMP_PAGE 0xC03FF000 
+extern void *TEMP_PAGE;
+extern size_t *TEMP_PAGE_INFO;
+
+/*#define TEMP_PAGE 0xC03FF000 
 #define TEMP_PAGE_INFO 0xc0009ffc // TODO ((size_t)KERNEL_PAGE_TABLE + (((TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) * sizeof(physaddr))) 
+*/
 typedef size_t physaddr;
 
 typedef struct {
@@ -39,13 +43,6 @@ typedef struct {
 	physaddr prev;
 	size_t size;
 } PhysMemoryBlock;
-
-typedef struct {
-	uint64_t base;
-	uint64_t length;
-	uint32_t type;
-	uint32_t acpi_ext_attrs;
-} __attribute__((packed)) MemoryMapEntry;
 
 /*
 typedef enum {

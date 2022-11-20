@@ -1,7 +1,7 @@
 all: assembly_os create_iso run
 
 assembly_os: main.o startup.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o
-	i386-elf-ld -T script.ld -o bin/kernel.elf startup.o main.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o
+	i386-elf-ld -T script.ld -s -o bin/kernel.elf startup.o main.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o
 	rm -rf *.o 
 
 main.o: kernel/main.cpp

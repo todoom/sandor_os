@@ -15,7 +15,7 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_interrupts();
 	init_tty();
 	clear_screen();
-
+/*
 	char *str = "Hello, wer\0";
 	printf("%s\n", str);
 	List<int> list;
@@ -24,11 +24,6 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	list.insert(3);
 
 	for(int i = 0; i < list.length; i++) printf("%x\n", list.get_value(i));
-
-	// for(PhysMemoryBlock* i = (PhysMemoryBlock*)free_phys_memory_pointer; (physaddr)i != free_phys_memory_pointer; i = (PhysMemoryBlock*)i->next)
-	// {
-	// 	printf("%x ", i);
-	// 	printf("%x ", i->size);
-	// 	printf("\n");
-	// }
+*/
+	printf("%x\n", free_phys_memory_pointer);
 }

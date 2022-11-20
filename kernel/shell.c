@@ -74,14 +74,14 @@ void physdump(int argc, char** argv)
 		printf("%x:%x  ", descriptor, address + i * 16);
 		for (int j = i * 16; j < ((i + 1) * 16); j++)
 		{
-			output = ((char*)(TEMP_PAGE | (address & 0xfff)))[j];
+			output = ((char*)((size_t)TEMP_PAGE | (address & 0xfff)))[j];
 			if (output < 0x10) printf("0");
 			printf("%x ", output & 0xff);	
 		}
 		printf(" ");
 		for (int j = i * 16; j < ((i + 1) * 16); j++)
 		{
-			output = ((char*)(TEMP_PAGE | (address & 0xfff)))[j];
+			output = ((char*)((size_t)TEMP_PAGE | (address & 0xfff)))[j];
 			if (output < 32) printf(".");
 			else printf("%c", output & 0xff);		
 		}
