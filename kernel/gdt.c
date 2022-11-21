@@ -29,7 +29,7 @@ void gdt_install()
 	gdt_set_gate(3, 0, 0xFFFFFFFF, 0xFA, 0xC); // 1 11 1 1 0 1 0
 	gdt_set_gate(4, 0, 0xFFFFFFFF, 0xF2, 0xC); // 1 11 1 0 0 1 0
 
-	//Возможно что то с это V хуйней
-	set_gdtr(get_physaddr(&_gp));
+	
+	set_gdtr();
 
 }

@@ -3,7 +3,7 @@
 
 #include "stdlib.h"
 
-extern void set_gdtr(size_t addr);
+extern void set_gdtr();
 
 struct gdt_entry
 {

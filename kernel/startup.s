@@ -101,11 +101,9 @@ _start:
 
 section ".text" executable
 public set_gdtr
+extrn _gp
 set_gdtr:
-	pop ebx
-	pop eax
-	push ebx
-	lgdt [eax]
+	lgdt [_gp]
 	mov ax, 0x10
 	mov ds, ax
 	mov es, ax
