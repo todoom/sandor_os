@@ -1,7 +1,7 @@
 ENTRY(_start)
 
 KERNEL_BASE_LMA = 0x00100000;
-KERNEL_BASE_VMA = 0xbbbbb000;
+KERNEL_BASE_VMA = 0xc0000000;
 VMA_MINUS_LMA = KERNEL_BASE_VMA - KERNEL_BASE_LMA;
  
 SECTIONS
@@ -45,10 +45,16 @@ SECTIONS
 		KERNEL_PAGE_TABLE = .;
 		*(.kernel_page_table);
 	}
-	.empty ALIGN(0x1000) - 1 : AT (ADDR(.empty) - VMA_MINUS_LMA)
+	/*TODO*/
+	.virt_block_table ALIGN(4K):
 	{
-		BYTE(0)
 		KERNEL_END = .;
+		VIRT_BLOCK_TABLE = .;
+	}
+	. = . & 0xffc00000 + 0x3ff000;
+	.temp_page ALIGN(4K):
+	{
+
 	}
  
 }

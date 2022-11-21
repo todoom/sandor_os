@@ -21,8 +21,8 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	free_phys_memory_pointer = -1;
 	multiboot_memory_map_t *entry;
 
-	TEMP_PAGE = (size_t)KERNEL_BASE_VMA + (PAGE_TABLE_INDEX_MASK << PAGE_OFFSET_BITS);
-	TEMP_PAGE_INFO = KERNEL_PAGE_TABLE + ((((size_t)TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) << 0);
+	TEMP_PAGE = ((size_t)KERNEL_BASE_VMA & (PAGE_TABLE_INDEX_MASK << (PAGE_OFFSET_BITS + PAGE_TABLE_INDEX_BITS))) + (PAGE_TABLE_INDEX_MASK << PAGE_OFFSET_BITS);
+	TEMP_PAGE_INFO = KERNEL_PAGE_TABLE + ((((size_t)TEMP_PAGE >> PAGE_OFFSET_BITS) & PAGE_TABLE_INDEX_MASK) << 0); //TODO
 
 	for (entry = memory_map; entry->type; entry++) 
 	{
@@ -38,7 +38,7 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	}
 	//init virtual memory
 	virt_memory.block_count = 0;
-	virt_memory.blocks_table = (VirtMemoryBlock*)KERNEL_END;
+	virt_memory.blocks_table = (VirtMemoryBlock*)VIRT_BLOCK_TABLE;
 	virt_memory.table_size = 1;
 
 	map_pages(virt_memory.blocks_table, alloc_phys_pages(virt_memory.table_size), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);

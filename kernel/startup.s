@@ -61,7 +61,6 @@ _start:
 	mov ecx, kernel_page_table + 111b
 	sub ecx, ebx
 	mov dword[eax], ecx
-	;mov dword[page_dir - VMA_MINUS_LMA + (KERNEL_BASE_VMA shr 22) * 4], kernel_page_table - VMA_MINUS_LMA + 111b
 	;количество страниц
 	mov eax, KERNEL_END
 	sub eax, KERNEL_BASE_VMA 
@@ -69,6 +68,7 @@ _start:
 	div ecx
 	mov ecx, eax
 	;смещение
+	;edi = kernel_page_table - KERNEL_BASE_VMA + KERNEL_BASE_LMA + KERNEL_BASE_VMA shr 12 and 0x3ff * 4
 	mov edi, KERNEL_BASE_VMA
 	shr edi, 12
 	and edi, 0x3ff
@@ -113,4 +113,5 @@ temp_page_table:
 section ".kernel_page_table" align 0x1000
 kernel_page_table:
 	rb 0xfff
+	
 

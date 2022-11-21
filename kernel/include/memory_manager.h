@@ -27,8 +27,9 @@ extern uint32_t KERNEL_BASE_LMA[];
 extern uint32_t KERNEL_CODE_BASE[];
 extern uint32_t KERNEL_DATA_BASE[];
 extern uint32_t KERNEL_BSS_BASE[];
-extern uint32_t KERNEL_END[];
 extern uint32_t KERNEL_PAGE_TABLE[];
+extern uint32_t KERNEL_END[];
+extern uint32_t VIRT_BLOCK_TABLE[];
 
 extern void *TEMP_PAGE;
 extern size_t *TEMP_PAGE_INFO;
