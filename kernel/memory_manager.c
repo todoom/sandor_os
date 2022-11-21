@@ -284,11 +284,11 @@ void* add_virt_block(size_t size)
 	VirtMemoryBlock *cur_block = &(virt_memory.blocks_table[i]);
 	VirtMemoryBlock *next_block = &(virt_memory.blocks_table[i + 1]);
 	
-	if ((size_t)(cur_block->base) >= (size << PAGE_OFFSET_BITS))
+	if ((size_t)(cur_block->base) >= (size_t)KERNEL_ADDRESS_SPACE + (size << PAGE_OFFSET_BITS))
 	{
 		memcpy(cur_block + 1, cur_block, virt_memory.block_count * sizeof(VirtMemoryBlock));
 
-		cur_block->base = 0;
+		cur_block->base = (size_t)KERNEL_ADDRESS_SPACE;
 		cur_block->size = size;
 
 		virt_memory.block_count += 1;

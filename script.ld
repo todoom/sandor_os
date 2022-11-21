@@ -2,11 +2,13 @@ ENTRY(_start)
 
 KERNEL_BASE_LMA = 0x00100000;
 KERNEL_BASE_VMA = 0xc0000000;
+KERNEL_ADDRESS_SPACE = 0xb0000000;
 VMA_MINUS_LMA = KERNEL_BASE_VMA - KERNEL_BASE_LMA;
  
 SECTIONS
 {
 	. = KERNEL_BASE_LMA;
+	KERNEL_CODE_BASE = KERNEL_BASE_VMA;
  	.multiboot.data : 
  	{
         *(.multiboot.data)
@@ -19,7 +21,6 @@ SECTIONS
     . = . + VMA_MINUS_LMA;
 	.text : AT (ADDR(.text) - VMA_MINUS_LMA)
 	{
-		KERNEL_CODE_BASE = .;
 		*(.text)
 	}
 	.rodata ALIGN(4K) : AT (ADDR(.rodata) - VMA_MINUS_LMA)

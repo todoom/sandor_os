@@ -99,6 +99,23 @@ _start:
  	hlt
 	jmp @b
 
+section ".text" executable
+public set_gdtr
+set_gdtr:
+	pop ebx
+	pop eax
+	push ebx
+	lgdt [eax]
+	mov ax, 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	hlt
+	jmp 0x8:flush
+flush:
+	ret		
+
 section ".bss"
 align 4                                   
 kernel_stack:                             
