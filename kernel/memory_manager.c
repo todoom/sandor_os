@@ -82,7 +82,7 @@ physaddr get_physaddr(void *vaddr)
 	physaddr page_table = ((physaddr*)TEMP_PAGE)[pdindex];
 
 	temp_map_page(page_table);
-	return ((physaddr*)TEMP_PAGE)[ptindex];
+	return (((physaddr*)TEMP_PAGE)[ptindex] & ~0xFFF) + ((size_t)vaddr & 0xFFF);
 } 
 
 

@@ -41,7 +41,6 @@ _start:
 	mov ecx, temp_page_table + 111b
 	sub ecx, ebx
 	mov dword[eax], ecx
-	;mov dword[page_dir - VMA_MINUS_LMA], temp_page_table - VMA_MINUS_LMA + 111b
 	mov ecx, 1024
 	mov edi, temp_page_table
 	sub edi, ebx
@@ -75,7 +74,6 @@ _start:
 	shl edi, 2
 	add edi, kernel_page_table
 	sub edi, ebx
-	;mov edi, kernel_page_table - VMA_MINUS_LMA + KERNEL_BASE_VMA shr 12 and 0x3ff * 4
 	mov eax, KERNEL_BASE_LMA
 	add eax, 11b
 @@:
@@ -103,13 +101,17 @@ section ".text" executable
 public set_gdtr
 extrn _gp
 set_gdtr:
-	lgdt [_gp]
+	pop ebx
+	pop eax
+	push ebx
+	lgdt [eax]
 	mov ax, 0x10
 	mov ds, ax
 	mov es, ax
 	mov fs, ax
 	mov gs, ax
-	hlt
+	mov ss, ax
+
 	jmp 0x8:flush
 flush:
 	ret		
