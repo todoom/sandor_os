@@ -1,6 +1,8 @@
 #include "include/tty.h"
 #include "include/memory_manager.h"
 #include "include/gdt.h"
+#include "include/tss.h"
+
 
 struct gdt_entry gdt[6];
 struct gdt_ptr _gp;
@@ -22,12 +24,14 @@ void gdt_install()
 	_gp.base = get_physaddr((void*)gdt);
 
 	create_descriptor(0, 0, 0, 0, 0);
-									 //1 1 0 0
-	create_descriptor(1, 0, 0xFFFFFFFF, GDT_ACCESS_CODE_PL0, 0xC); // 1 00 1 1 0 1 0
-	create_descriptor(2, 0, 0xFFFFFFFF, GDT_ACCESS_DATA_PL0, 0xC); // 1 00 1 0 0 1 0
+									 
+	create_descriptor(1, 0, 0xFFFFFFFF, GDT_ACCESS_CODE_PL0, GDT_FLAGS); 
+	create_descriptor(2, 0, 0xFFFFFFFF, GDT_ACCESS_DATA_PL0, GDT_FLAGS); 
 
-	create_descriptor(3, 0, 0xFFFFFFFF, GDT_ACCESS_CODE_PL3, 0xC); // 1 11 1 1 0 1 0
-	create_descriptor(4, 0, 0xFFFFFFFF, GDT_ACCESS_DATA_PL3, 0xC); // 1 11 1 0 0 1 0
+	create_descriptor(3, 0, 0xFFFFFFFF, GDT_ACCESS_CODE_PL3, GDT_FLAGS); 
+	create_descriptor(4, 0, 0xFFFFFFFF, GDT_ACCESS_DATA_PL3, GDT_FLAGS); 
 
-	set_gdtr(get_physaddr((void*)(&_gp)));
+	tss_install(5, 0, 0);
+
+	flush_gdtr(get_physaddr((void*)(&_gp)));
 }

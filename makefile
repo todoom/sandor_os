@@ -1,7 +1,7 @@
 all: assembly_os create_iso run
 
-assembly_os: main.o startup.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o gdt.o
-	i386-elf-ld -T script.ld -s -o bin/kernel.elf startup.o main.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o gdt.o
+assembly_os: main.o startup.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o gdt.o tss.o
+	i386-elf-ld -T script.ld -s -o bin/kernel.elf startup.o main.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o gdt.o tss.o
 	rm -rf *.o 
 
 main.o: kernel/main.cpp
@@ -30,6 +30,9 @@ ATA.o: kernel/ATA.c
 
 gdt.o: kernel/gdt.c
 	i386-elf-gcc -c -m32 -ffreestanding -nostdlib -o gdt.o kernel/gdt.c  
+
+tss.o: kernel/tss.c
+	i386-elf-gcc -c -m32 -ffreestanding -nostdlib -o tss.o kernel/tss.c  
 
 create_iso:
 	mkdir -p isodir/boot/grub

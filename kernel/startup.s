@@ -98,9 +98,9 @@ _start:
 	jmp @b
 
 section ".text" executable
-public set_gdtr
+public flush_gdtr
 extrn _gp
-set_gdtr:
+flush_gdtr:
 	pop ebx
 	pop eax
 	push ebx
@@ -114,7 +114,15 @@ set_gdtr:
 
 	jmp 0x8:flush
 flush:
-	ret		
+	ret	
+
+public flush_tss
+flush_tss:
+	pop ebx
+	pop eax
+	push ebx
+	ltr [eax]	
+	ret
 
 section ".bss"
 align 4                                   

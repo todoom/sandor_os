@@ -17,7 +17,15 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_tty();
 	clear_screen();
 
-	printf("%s\n", "hello, kernel world");
-
 	gdt_install();
+
+	List<int> list;
+	list.insert(5);
+	list.insert(3);
+	list.insert(1);
+
+	for (int i = 0; i < list.length; i++)
+	{
+		printf("%x\n", list.get_value(i));
+	}
 }

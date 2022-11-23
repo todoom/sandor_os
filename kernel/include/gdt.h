@@ -2,6 +2,7 @@
 #define GDT_H
 
 #include "stdlib.h"
+#include "memory_manager.h"
 
 #define SEG_SAVL(x)      ((x) << 0x0) // Available for system use
 #define SEG_LONG(x)      ((x) << 0x1) // Long mode
@@ -39,7 +40,11 @@
 
 #define GDT_ACCESS_DATA_PL3 SEG_DESCTYPE(1) | SEG_PRES(1) | SEG_PRIV(3) | SEG_DATA_RDWR
 
-extern void set_gdtr(physaddr gdtr);
+extern struct gdt_ptr _gp;
+
+extern void flush_gdtr(physaddr gdtr);
+extern void create_descriptor(uint16_t num, uint32_t base, \
+				 uint32_t limit, uint8_t access, uint8_t flags) asm("create_descriptor");
 
 struct gdt_entry
 {
