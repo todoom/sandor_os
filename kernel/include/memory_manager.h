@@ -30,7 +30,11 @@ extern uint32_t KERNEL_DATA_BASE[];
 extern uint32_t KERNEL_BSS_BASE[];
 extern uint32_t KERNEL_PAGE_TABLE[];
 extern uint32_t KERNEL_END[];
-extern uint32_t VIRT_BLOCK_TABLE[];
+extern uint32_t KERNEL_VIRT_BLOCK_TABLE[];
+extern uint32_t KERNEL_ADDRESS_SPACE_START[];
+extern uint32_t KERNEL_ADDRESS_SPACE_END[];
+extern uint32_t USER_ADDRESS_SPACE_START[];
+extern uint32_t USER_ADDRESS_SPACE_END[];
 
 extern void *TEMP_PAGE;
 extern size_t *TEMP_PAGE_INFO;
@@ -59,18 +63,9 @@ typedef struct {
 typedef struct
 {
 	size_t block_count;
-	VirtMemoryBlock* blocks_table;
+	VirtMemoryBlock* blocks;
 	size_t table_size;
 } VirtMemory;
-
-typedef struct {
-	physaddr page_dir;
-	void *start;
-	void *end;
-	size_t block_table_size;
-	size_t block_count;
-	VirtMemoryBlock *blocks;
-} AddressSpace;
 
 typedef struct
 {
@@ -83,6 +78,16 @@ typedef struct
 	size_t block_count;
 	DynamicMemoryBlock* blocks;
 } DynamicMemory;
+
+typedef struct {
+	physaddr page_dir;
+	void *start;
+	void *end;
+	VirtMemory virt_memory;
+	DynamicMemory dynamic_memory;
+} AddressSpace;
+
+
 
 extern DynamicMemory dynamic_memory;
 extern VirtMemory virt_memory;

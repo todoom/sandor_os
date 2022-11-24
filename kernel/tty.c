@@ -49,6 +49,7 @@ void out_char(char chr) {
 		default:
 			tty_buffer[cursor].chr = chr;
 			tty_buffer[cursor].attr = text_attr;
+			
 			move_cursor(cursor + 1);
 	}
 }

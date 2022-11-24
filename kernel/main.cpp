@@ -17,15 +17,6 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_tty();
 	clear_screen();
 
-	gdt_install();
-
-	List<int> list;
-	list.insert(5);
-	list.insert(3);
-	list.insert(1);
-
-	for (int i = 0; i < list.length; i++)
-	{
-		printf("%x\n", list.get_value(i));
-	}
+	for (int i = 0; i < 506; i++) alloc_virt_pages(NULL, 0xFFFFF000, 1, PAGE_PRESENT);
+	printf("%s\n", "ok");
 }

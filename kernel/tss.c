@@ -6,7 +6,6 @@ struct tss_entry TSS;
 void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP)
 {
 	uint32_t base = (uint32_t)&TSS;
-	printf("%x\n", base);
 
 	create_descriptor(idx, get_physaddr(base), get_physaddr(sizeof(struct tss_entry)), 0x89, 0x0);
 

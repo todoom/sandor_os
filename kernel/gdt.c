@@ -31,7 +31,7 @@ void gdt_install()
 	create_descriptor(3, 0, 0xFFFFFFFF, GDT_ACCESS_CODE_PL3, GDT_FLAGS); 
 	create_descriptor(4, 0, 0xFFFFFFFF, GDT_ACCESS_DATA_PL3, GDT_FLAGS); 
 
-	tss_install(5, 0, 0);
+	// tss_install(5, 0, 0);
 
 	flush_gdtr(get_physaddr((void*)(&_gp)));
 }
