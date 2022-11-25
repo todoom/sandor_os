@@ -17,6 +17,8 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_tty();
 	clear_screen();
 
-	for (int i = 0; i < 506; i++) alloc_virt_pages(NULL, 0xFFFFF000, 1, PAGE_PRESENT);
+	// for (int i = 0; i < 200000; i++) {alloc_virt_pages(NULL, 0xFFFFF000, 1, PAGE_PRESENT);}
+
+	void *temp = kmalloc(0x200000);
 	printf("%s\n", "ok");
 }

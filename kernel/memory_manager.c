@@ -13,6 +13,7 @@ void *TEMP_PAGE;
 size_t *TEMP_PAGE_INFO;
 AddressSpace *current_address_space;
 AddressSpace kernel_address_space;
+AddressSpace user_address_space;
 
 void init_memory_manager(multiboot_uint32_t memory_map) 
 {
@@ -66,13 +67,16 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	kernel_address_space.dynamic_memory.block_count = 0;
 	kernel_address_space.dynamic_memory.blocks = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
 	
-	// AddressSpace user_address_space;
+
 	// user_address_space.page_dir = alloc_phys_pages(1);
 	// temp_map_page(user_address_space.page_dir);
 	// memcpy(TEMP_PAGE, kernel_address_space.page_dir, PAGE_SIZE);
 	// user_address_space.start = USER_ADDRESS_SPACE_START;
 	// user_address_space.end = USER_ADDRESS_SPACE_END;
-	
+	// user_address_space.virt_memory = kernel_address_space.virt_memory;
+	// user_address_space.dynamic_memory = kernel_address_space.dynamic_memory;
+
+	// current_address_space = &user_address_space;
 }
 
 static inline void flush_page_cache(void *addr) 
@@ -305,7 +309,8 @@ void* add_virt_block(size_t size)
 		current_address_space->virt_memory.block_count += 1;
 		return cur_block->base;
 	}
-	for (; i < current_address_space->virt_memory.block_count - 1; i++, cur_block = &(current_address_space->virt_memory.blocks[i]), next_block = &(current_address_space->virt_memory.blocks[i + 1]))
+	for (; i < current_address_space->virt_memory.block_count - 1; i++, cur_block = &(current_address_space->virt_memory.blocks[i]),\
+																		 next_block = &(current_address_space->virt_memory.blocks[i + 1]))
 	{
 		if (cur_block->base + ((cur_block->size + size) << PAGE_OFFSET_BITS) > current_address_space->end)
 		{
@@ -350,6 +355,7 @@ size_t del_virt_block(void* base)
 	}
 	return 0;
 }
+
 void* alloc_virt_pages(void *vaddr, physaddr paddr, size_t count, unsigned int flags) 
 {
 	//18e1
@@ -361,18 +367,17 @@ void* alloc_virt_pages(void *vaddr, physaddr paddr, size_t count, unsigned int f
 
 		current_address_space->virt_memory.table_size += 1;
 		void *new_table = add_virt_block(current_address_space->virt_memory.table_size);
-
 		for (int i = 0; i < current_address_space->virt_memory.table_size; i++)
 		{
 			map_pages(new_table + i * PAGE_SIZE, alloc_phys_pages(1), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
 		}
-		memcpy(new_table, old_table, current_address_space->virt_memory.table_size - 1);
-
+		memcpy(new_table, old_table, (current_address_space->virt_memory.table_size - 1) << PAGE_OFFSET_BITS);
 		for (int i = 0; i < current_address_space->virt_memory.table_size - 1; i++)
 		{
 			free_phys_pages(get_physaddr(old_table + i * PAGE_SIZE), 1);
 		}
 		unmap_pages(old_table, current_address_space->virt_memory.table_size - 1);
+		current_address_space->virt_memory.blocks = new_table;
 	}
 	if (vaddr == NULL)
 	{
