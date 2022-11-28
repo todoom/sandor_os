@@ -17,19 +17,24 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_tty();
 	clear_screen();
 
-	// for (int i = 0; i < 200000; i++) {alloc_virt_pages(NULL, 0xFFFFF000, 1, PAGE_PRESENT);}
-
-	printf("%s\n", "ok");
-	printf("%s\n", "hello world");
-	printf("%x\n", 0x12345);
-	void *temp;
-	for (int i = 0; i < 0x1000; i++)
+	DynamicMemory *current_dynamic_memory = &(current_address_space->dynamic_memory);
+	
+	printf("%x\n", current_dynamic_memory->blocks);
+	
+	for (int i = 0; i < 0x201; i++)
 	{
-		temp = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT);
+		kmalloc(1);
 	}
-	for (int i = 0; i < 1024; i++, temp -= 0x1000)
+	// size_t size = current_dynamic_memory->block_count;
+	// for (int i = 0; i < size - 1; i++)
+	// {
+	// 	printf("%x\n", kfree(current_dynamic_memory->blocks[0].base));
+	// }
+	for (int i = 0; i < current_dynamic_memory->block_count; i++)
 	{
-		free_virt_pages(temp);
+		printf("%x\n", current_dynamic_memory->blocks[i].base);
+		printf("%x\n", current_dynamic_memory->blocks[i].size);
 	}
+	printf("%x\n", current_dynamic_memory->blocks);
 	printf("%s\n", "complete");
 }

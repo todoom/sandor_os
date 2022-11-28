@@ -90,6 +90,7 @@ typedef struct {
 	DynamicMemory dynamic_memory;
 } AddressSpace;
 
+extern AddressSpace *current_address_space;
 extern void init_memory_manager(multiboot_uint32_t memory_map) asm ("init_memory_manager");
 
 void temp_map_page(physaddr addr) asm ("temp_map_page");
@@ -109,5 +110,5 @@ void* add_virt_block(size_t size) asm("add_virt_block");
 size_t del_virt_block(void* base) asm("del_virt_block");
 
 extern void* kmalloc(size_t size) asm("kmalloc");
-extern void kfree(void* ptr) asm("kfree");
+extern bool kfree(void* ptr) asm("kfree");
 #endif

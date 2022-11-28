@@ -65,10 +65,11 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	kernel_address_space.virt_memory.block_count++;
 
 	kernel_address_space.dynamic_memory.block_count = 0;
-	kernel_address_space.dynamic_memory.blocks = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
 	kernel_address_space.dynamic_memory.table_size = 1;
-	kernel_address_space.dynamic_memory.heap = 0;
-	kernel_address_space.dynamic_memory.heap_size = 0;
+	kernel_address_space.dynamic_memory.blocks = alloc_virt_pages(NULL, -1, kernel_address_space.dynamic_memory.table_size, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	kernel_address_space.dynamic_memory.heap_size = 10;
+	kernel_address_space.dynamic_memory.heap = alloc_virt_pages(NULL, -1, kernel_address_space.dynamic_memory.heap_size, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	
 	
 
 	// user_address_space.page_dir = alloc_phys_pages(1);
@@ -317,7 +318,7 @@ void* add_virt_block(size_t size)
 	{
 		if (cur_block->base + ((cur_block->size + size) << PAGE_OFFSET_BITS) > current_address_space->end)
 		{
-			return (void*)-1;
+			return (void*)NULL;
 		}
 		if (cur_block->base + ((cur_block->size + size) << PAGE_OFFSET_BITS) <= nxt_block->base)
 		{
@@ -333,7 +334,7 @@ void* add_virt_block(size_t size)
 	}
 	if (cur_block->base + ((cur_block->size + size) << PAGE_OFFSET_BITS) > current_address_space->end)
 	{
-		return (void*)-1;
+		return (void*)NULL;
 	}
 	nxt_block->base = cur_block->base + (cur_block->size << PAGE_OFFSET_BITS);
 	nxt_block->size = size;
@@ -344,14 +345,14 @@ void* add_virt_block(size_t size)
 size_t del_virt_block(void* base)
 {
 	VirtMemory *current_virt_memory = &(current_address_space->virt_memory);
-	VirtMemoryBlock *temp;
+	VirtMemoryBlock *cur_block;
 	for (int i = 0; i < current_virt_memory->block_count; i++)
 	{
-		temp = &(current_virt_memory->blocks[i]);
-		if (temp->base == base)
+		cur_block = &(current_virt_memory->blocks[i]);
+		if ((size_t)(cur_block->base) == (size_t)base)
 		{
-			size_t size = temp->size;
-			memcpy(temp, temp + 1, (current_virt_memory->block_count - i) * sizeof(VirtMemoryBlock));
+			size_t size = cur_block->size;
+			memcpy(cur_block, cur_block + 1, (current_virt_memory->block_count - i) * sizeof(VirtMemoryBlock));
 			current_virt_memory->block_count -= 1;
 
 			return size;
@@ -426,81 +427,121 @@ size_t free_virt_pages(void *vaddr)
 	return count;
 } 
 
-void* add_dynamic_block(size_t size)
-{
-	DynamicMemory current_dynamic_memory = current_address_space->dynamic_memory;
-	int i = 0;
-	DynamicMemoryBlock *cur_block = &(current_dynamic_memory.blocks[i]);
-	DynamicMemoryBlock *nxt_block = &(current_dynamic_memory.blocks[i + 1]);
-	if (current_dynamic_memory.blocks[0].base > size)
-	{	
-		memcpy(cur_block + 1, cur_block, current_dynamic_memory.block_count * sizeof(VirtMemoryBlock));
-
-		cur_block->base = (size_t)current_address_space->start;
-		cur_block->size = size;
-
-		current_dynamic_memory.block_count += 1;
-		return cur_block->base;
-	}
-}
-
 void* kmalloc(size_t size)
 {
-	if ((current_address_space->dynamic_memory.block_count + 1) * sizeof(DynamicMemoryBlock) > current_address_space->dynamic_memory.table_size << PAGE_OFFSET_BITS)
+	DynamicMemory *current_dynamic_memory = &(current_address_space->dynamic_memory);
+
+	if ((current_dynamic_memory->block_count + 1) * sizeof(DynamicMemoryBlock) > current_dynamic_memory->table_size << PAGE_OFFSET_BITS)
 	{
-		size_t old_table_size = current_address_space->dynamic_memory.table_size;
-		void *old_table = current_address_space->dynamic_memory.blocks;
+		size_t old_table_size = current_dynamic_memory->table_size;
+		void *old_table = current_dynamic_memory->blocks;
 		void *new_table = alloc_virt_pages(NULL, -1, old_table_size + 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
 
+		if (new_table == NULL) return NULL;
 		memcpy(new_table, old_table, old_table_size);
 
-		current_address_space->dynamic_memory.blocks = new_table;
-		current_address_space->dynamic_memory.table_size = old_table_size + 1;
+		current_dynamic_memory->blocks = new_table;
+		current_dynamic_memory->table_size = old_table_size + 1;
 	}
-	int i = 0;
-	for (;i < current_address_space->dynamic_memory.block_count; i++)
+	if (current_dynamic_memory->block_count == 0)
 	{
+		current_dynamic_memory->blocks[0].base = current_dynamic_memory->heap;
+		current_dynamic_memory->blocks[0].size = size;
 
+		current_dynamic_memory->block_count += 1;
+
+		return current_dynamic_memory->blocks[0].base;
 	}
-}
-void kfree(void* ptr)
-{
+	size_t i = 0;
+	DynamicMemoryBlock *cur_block = &(current_dynamic_memory->blocks[i]);
+	DynamicMemoryBlock *nxt_block = &(current_dynamic_memory->blocks[i + 1]);
+	if (current_dynamic_memory->blocks[0].base >= (size_t)(current_dynamic_memory->heap) + size)
+	{	
+		memcpy(cur_block + 1, cur_block, current_dynamic_memory->block_count * sizeof(VirtMemoryBlock));
 
+		cur_block->base = current_dynamic_memory->blocks[0].base - size;
+		cur_block->size = size;
+
+		current_dynamic_memory->block_count += 1;
+		return cur_block->base;
+	}
+	for (; i < current_dynamic_memory->block_count - 1; i++, cur_block = &(current_dynamic_memory->blocks[i]), nxt_block = &(current_dynamic_memory->blocks[i + 1]))
+	{
+		if ((cur_block->base + cur_block->size + size) <= nxt_block->base)
+		{
+			memcpy(nxt_block + 1, nxt_block, (current_dynamic_memory->block_count - i) * sizeof(VirtMemoryBlock));
+
+			nxt_block->base = cur_block->base + cur_block->size;
+			nxt_block->size = size;
+
+			current_dynamic_memory->block_count += 1;
+
+			return nxt_block->base;			
+		}
+	}
+	if ((size_t)(cur_block->base) + (((size_t)(cur_block->size) + size)) > ((size_t)(current_dynamic_memory->heap) + ((size_t)(current_dynamic_memory->heap_size) << PAGE_OFFSET_BITS)))
+	{
+		return NULL;
+	}
+	nxt_block->base = cur_block->base + cur_block->size;
+	nxt_block->size = size;
+	current_dynamic_memory->block_count += 1;
+
+	return nxt_block->base;
+}
+bool kfree(void* ptr)
+{
+	DynamicMemory *current_dynamic_memory = &(current_address_space->dynamic_memory);
+
+	size_t i = 0;
+	DynamicMemoryBlock *cur_block = &(current_dynamic_memory->blocks[i]);
+
+	for (; i < current_dynamic_memory->block_count; i++)
+	{
+		if ((size_t)(cur_block->base) == (size_t)ptr)
+		{
+			memcpy(cur_block, cur_block + 1, (current_dynamic_memory->block_count - i) * sizeof(VirtMemoryBlock));
+			current_dynamic_memory->block_count -= 1;
+
+			return true;
+		}
+	}
+	return false;
 }
 /*
 void* kmalloc(size_t size)
 {
-	if (current_address_space->dynamic_memory.block_count == 0)
+	if (current_dynamic_memory->block_count == 0)
 	{
-		current_address_space->dynamic_memory.blocks[0].base = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-		current_address_space->dynamic_memory.blocks[0].length = size;
-		current_address_space->dynamic_memory.block_count += 1;
-		return current_address_space->dynamic_memory.blocks[0].base;
+		current_dynamic_memory->blocks[0].base = alloc_virt_pages(NULL, -1, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+		current_dynamic_memory->blocks[0].length = size;
+		current_dynamic_memory->block_count += 1;
+		return current_dynamic_memory->blocks[0].base;
 	}
-	if((int)(((int)(current_address_space->dynamic_memory.blocks[0].base) & PAGE_OFFSET_MASK) - size) >= 0)
+	if((int)(((int)(current_dynamic_memory->blocks[0].base) & PAGE_OFFSET_MASK) - size) >= 0)
 	{
-		memcpy(&(current_address_space->dynamic_memory.blocks[1]), &(current_address_space->dynamic_memory.blocks[0]), current_address_space->dynamic_memory.block_count * sizeof(DynamicMemoryBlock));
-		current_address_space->dynamic_memory.blocks[0].base = current_address_space->dynamic_memory.blocks[1].base - size;
-		current_address_space->dynamic_memory.blocks[0].length = size;
-		current_address_space->dynamic_memory.block_count += 1;
-		return current_address_space->dynamic_memory.blocks[0].base;		
+		memcpy(&(current_dynamic_memory->blocks[1]), &(current_dynamic_memory->blocks[0]), current_dynamic_memory->block_count * sizeof(DynamicMemoryBlock));
+		current_dynamic_memory->blocks[0].base = current_dynamic_memory->blocks[1].base - size;
+		current_dynamic_memory->blocks[0].length = size;
+		current_dynamic_memory->block_count += 1;
+		return current_dynamic_memory->blocks[0].base;		
 	}
 	int i = 0;
 	DynamicMemoryBlock cur_block;
 	DynamicMemoryBlock next_block;
-	for (; i < current_address_space->dynamic_memory.block_count - 1; i++)
+	for (; i < current_dynamic_memory->block_count - 1; i++)
 	{
-		cur_block = current_address_space->dynamic_memory.blocks[i];
-	    next_block = current_address_space->dynamic_memory.blocks[i + 1];
+		cur_block = current_dynamic_memory->blocks[i];
+	    next_block = current_dynamic_memory->blocks[i + 1];
 	    if (((int)(cur_block.base) & ~PAGE_OFFSET_MASK) == ((int)(next_block.base) & ~PAGE_OFFSET_MASK))
 	    { 	
 			if(cur_block.base + cur_block.length + size <= next_block.base)
 			{
-				memcpy(&(current_address_space->dynamic_memory.blocks[i + 2]), &(current_address_space->dynamic_memory.blocks[i + 1]), (current_address_space->dynamic_memory.block_count - i - 1) * sizeof(DynamicMemoryBlock));
-				current_address_space->dynamic_memory.blocks[i + 1].base = current_address_space->dynamic_memory.blocks[i].base + current_address_space->dynamic_memory.blocks[i].length;
-				current_address_space->dynamic_memory.blocks[i + 1].length = size;
-				current_address_space->dynamic_memory.block_count += 1;
-				return current_address_space->dynamic_memory.blocks[i + 1].base;
+				memcpy(&(current_dynamic_memory->blocks[i + 2]), &(current_dynamic_memory->blocks[i + 1]), (current_dynamic_memory->block_count - i - 1) * sizeof(DynamicMemoryBlock));
+				current_dynamic_memory->blocks[i + 1].base = current_dynamic_memory->blocks[i].base + current_dynamic_memory->blocks[i].length;
+				current_dynamic_memory->blocks[i + 1].length = size;
+				current_dynamic_memory->block_count += 1;
+				return current_dynamic_memory->blocks[i + 1].base;
 			}
 		}
 		else
@@ -509,54 +550,54 @@ void* kmalloc(size_t size)
 			{
 				if (size <= next_block.base - (cur_block.base + cur_block.length))
 				{
-					memcpy(&(current_address_space->dynamic_memory.blocks[i + 2]), &(current_address_space->dynamic_memory.blocks[i + 1]), (current_address_space->dynamic_memory.block_count - i - 1) * sizeof(DynamicMemoryBlock));
-					current_address_space->dynamic_memory.blocks[i + 1].base = current_address_space->dynamic_memory.blocks[i].base + current_address_space->dynamic_memory.blocks[i].length;
-					current_address_space->dynamic_memory.blocks[i + 1].length = size;
-					current_address_space->dynamic_memory.block_count += 1;
-					return current_address_space->dynamic_memory.blocks[i + 1].base;
+					memcpy(&(current_dynamic_memory->blocks[i + 2]), &(current_dynamic_memory->blocks[i + 1]), (current_dynamic_memory->block_count - i - 1) * sizeof(DynamicMemoryBlock));
+					current_dynamic_memory->blocks[i + 1].base = current_dynamic_memory->blocks[i].base + current_dynamic_memory->blocks[i].length;
+					current_dynamic_memory->blocks[i + 1].length = size;
+					current_dynamic_memory->block_count += 1;
+					return current_dynamic_memory->blocks[i + 1].base;
 				}
 			}
 			else if (((int)(cur_block.base + cur_block.length + size) & 0xffff) < PAGE_SIZE) { break; }
 			else { continue; }			
 		}
 	}
-	if (i == current_address_space->dynamic_memory.block_count - 1)
+	if (i == current_dynamic_memory->block_count - 1)
 	{
-		if (size <= PAGE_SIZE - ((int)(current_address_space->dynamic_memory.blocks[i].base) & PAGE_OFFSET_MASK) - current_address_space->dynamic_memory.blocks[i].length)
+		if (size <= PAGE_SIZE - ((int)(current_dynamic_memory->blocks[i].base) & PAGE_OFFSET_MASK) - current_dynamic_memory->blocks[i].length)
 		{
-			current_address_space->dynamic_memory.blocks[i + 1].base = current_address_space->dynamic_memory.blocks[i].base + current_address_space->dynamic_memory.blocks[i].length;
-			current_address_space->dynamic_memory.blocks[i + 1].length = size;
-			current_address_space->dynamic_memory.block_count += 1;
-			return current_address_space->dynamic_memory.blocks[i + 1].base;
+			current_dynamic_memory->blocks[i + 1].base = current_dynamic_memory->blocks[i].base + current_dynamic_memory->blocks[i].length;
+			current_dynamic_memory->blocks[i + 1].length = size;
+			current_dynamic_memory->block_count += 1;
+			return current_dynamic_memory->blocks[i + 1].base;
 		} 
 		else
 		{
 			void* base = alloc_virt_pages(NULL, -1, size / PAGE_SIZE + ((size % PAGE_SIZE > 0)? 1: 0), PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-			if((((int)base) & ~PAGE_OFFSET_MASK) < (((int)current_address_space->dynamic_memory.blocks[0].base) & ~PAGE_OFFSET_MASK))
+			if((((int)base) & ~PAGE_OFFSET_MASK) < (((int)current_dynamic_memory->blocks[0].base) & ~PAGE_OFFSET_MASK))
 			{
-				memcpy(&(current_address_space->dynamic_memory.blocks[1]), &(current_address_space->dynamic_memory.blocks[0]), current_address_space->dynamic_memory.block_count * sizeof(DynamicMemoryBlock));
-				current_address_space->dynamic_memory.blocks[0].base = base;
-				current_address_space->dynamic_memory.blocks[0].length = size;
-				current_address_space->dynamic_memory.block_count += 1;
-				return current_address_space->dynamic_memory.blocks[0].base;	
+				memcpy(&(current_dynamic_memory->blocks[1]), &(current_dynamic_memory->blocks[0]), current_dynamic_memory->block_count * sizeof(DynamicMemoryBlock));
+				current_dynamic_memory->blocks[0].base = base;
+				current_dynamic_memory->blocks[0].length = size;
+				current_dynamic_memory->block_count += 1;
+				return current_dynamic_memory->blocks[0].base;	
 			}
-			for (i = 0; i < current_address_space->dynamic_memory.block_count - 1; i++)
+			for (i = 0; i < current_dynamic_memory->block_count - 1; i++)
 			{
-				cur_block = current_address_space->dynamic_memory.blocks[i];
-	    		next_block = current_address_space->dynamic_memory.blocks[i + 1];
+				cur_block = current_dynamic_memory->blocks[i];
+	    		next_block = current_dynamic_memory->blocks[i + 1];
 	    		if ((base < next_block.base) && (base > cur_block.base))
 	    		{
-	    			memcpy(&(current_address_space->dynamic_memory.blocks[i + 2]), &(current_address_space->dynamic_memory.blocks[i + 1]), (current_address_space->dynamic_memory.block_count - i - 1) * sizeof(DynamicMemoryBlock));
-					current_address_space->dynamic_memory.blocks[i + 1].base = current_address_space->dynamic_memory.blocks[i].base + current_address_space->dynamic_memory.blocks[i].length;
-					current_address_space->dynamic_memory.blocks[i + 1].length = size;
-					current_address_space->dynamic_memory.block_count += 1;
-					return current_address_space->dynamic_memory.blocks[i + 1].base;
+	    			memcpy(&(current_dynamic_memory->blocks[i + 2]), &(current_dynamic_memory->blocks[i + 1]), (current_dynamic_memory->block_count - i - 1) * sizeof(DynamicMemoryBlock));
+					current_dynamic_memory->blocks[i + 1].base = current_dynamic_memory->blocks[i].base + current_dynamic_memory->blocks[i].length;
+					current_dynamic_memory->blocks[i + 1].length = size;
+					current_dynamic_memory->block_count += 1;
+					return current_dynamic_memory->blocks[i + 1].base;
 	    		}
 			}	
-			current_address_space->dynamic_memory.blocks[i + 2].base = base;
-			current_address_space->dynamic_memory.blocks[i + 2].length = size;
-			current_address_space->dynamic_memory.block_count += 1;
-			return current_address_space->dynamic_memory.blocks[i + 2].base;
+			current_dynamic_memory->blocks[i + 2].base = base;
+			current_dynamic_memory->blocks[i + 2].length = size;
+			current_dynamic_memory->block_count += 1;
+			return current_dynamic_memory->blocks[i + 2].base;
 		}
 	}
 	return NULL;}
@@ -564,36 +605,36 @@ void kfree(void* ptr)
 {
 	DynamicMemoryBlock cur_block;
 	DynamicMemoryBlock next_block;
-	for (int i = 0; i < current_address_space->dynamic_memory.block_count; i++)
+	for (int i = 0; i < current_dynamic_memory->block_count; i++)
 	{
-		cur_block = current_address_space->dynamic_memory.blocks[i];
+		cur_block = current_dynamic_memory->blocks[i];
 		if (cur_block.base == ptr)
 		{
 			if (i == 0)
 			{
-				if (((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_address_space->dynamic_memory.blocks[i + 1].base) & ~PAGE_OFFSET_MASK))
+				if (((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_dynamic_memory->blocks[i + 1].base) & ~PAGE_OFFSET_MASK))
 				{
 					free_virt_pages((void*)((int)(cur_block.base) & ~PAGE_OFFSET_MASK));
 				}
 	
 			}
-			else if (i == current_address_space->dynamic_memory.block_count - 1)
+			else if (i == current_dynamic_memory->block_count - 1)
 			{
-				if (((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_address_space->dynamic_memory.blocks[i - 1].base + current_address_space->dynamic_memory.blocks[i - 1].length) & ~PAGE_OFFSET_MASK))
+				if (((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_dynamic_memory->blocks[i - 1].base + current_dynamic_memory->blocks[i - 1].length) & ~PAGE_OFFSET_MASK))
 				{
 					free_virt_pages((void*)((int)(cur_block.base) & ~PAGE_OFFSET_MASK));
 				}
 			}
 			else
 			{
-				if ((((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_address_space->dynamic_memory.blocks[i + 1].base) & ~PAGE_OFFSET_MASK)) \
-					&& (((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_address_space->dynamic_memory.blocks[i - 1].base + current_address_space->dynamic_memory.blocks[i - 1].length) & ~PAGE_OFFSET_MASK)))
+				if ((((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_dynamic_memory->blocks[i + 1].base) & ~PAGE_OFFSET_MASK)) \
+					&& (((int)(cur_block.base) & ~PAGE_OFFSET_MASK) != ((int)(current_dynamic_memory->blocks[i - 1].base + current_dynamic_memory->blocks[i - 1].length) & ~PAGE_OFFSET_MASK)))
 				{
 					free_virt_pages((void*)((int)(cur_block.base) & ~PAGE_OFFSET_MASK));
 				}
 			}
-			memcpy(&(current_address_space->dynamic_memory.blocks[i]), &(current_address_space->dynamic_memory.blocks[i + 1]), (current_address_space->dynamic_memory.block_count - i) * sizeof(DynamicMemoryBlock));	
-			current_address_space->dynamic_memory.block_count -= 1;
+			memcpy(&(current_dynamic_memory->blocks[i]), &(current_dynamic_memory->blocks[i + 1]), (current_dynamic_memory->block_count - i) * sizeof(DynamicMemoryBlock));	
+			current_dynamic_memory->block_count -= 1;
 			break;
 		}
 	}}
