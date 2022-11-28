@@ -70,13 +70,16 @@ typedef struct
 typedef struct
 {
 	void *base;
-	size_t length;
+	size_t size;
 } DynamicMemoryBlock;
 
 typedef struct
 {
 	size_t block_count;
 	DynamicMemoryBlock* blocks;
+	size_t table_size;
+	void* heap;
+	size_t heap_size;
 } DynamicMemory;
 
 typedef struct {
@@ -86,12 +89,6 @@ typedef struct {
 	VirtMemory virt_memory;
 	DynamicMemory dynamic_memory;
 } AddressSpace;
-
-
-
-extern DynamicMemory dynamic_memory;
-extern VirtMemory virt_memory;
-extern physaddr free_phys_memory_pointer;
 
 extern void init_memory_manager(multiboot_uint32_t memory_map) asm ("init_memory_manager");
 
