@@ -17,24 +17,31 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_tty();
 	clear_screen();
 
-	DynamicMemory *current_dynamic_memory = &(current_address_space->dynamic_memory);
+	change_address_space(&user_address_space);
+	List<int> list;
+	list.insert(5);
+	printf("%x\n", list.get_value(0));
+	void *p1 = alloc_virt_pages(NULL, -1, 5, PAGE_PRESENT);
+	printf("%x\n", p1);
+
+	// DynamicMemory *current_dynamic_memory = &(current_address_space->dynamic_memory);
 	
-	printf("%x\n", current_dynamic_memory->blocks);
+	// printf("%x\n", current_dynamic_memory->blocks);
 	
-	for (int i = 0; i < 0x201; i++)
-	{
-		kmalloc(1);
-	}
+	// for (int i = 0; i < 0x40a; i++)
+	// {
+	// 	kmalloc(1);
+	// }
 	// size_t size = current_dynamic_memory->block_count;
 	// for (int i = 0; i < size - 1; i++)
 	// {
 	// 	printf("%x\n", kfree(current_dynamic_memory->blocks[0].base));
 	// }
-	for (int i = 0; i < current_dynamic_memory->block_count; i++)
-	{
-		printf("%x\n", current_dynamic_memory->blocks[i].base);
-		printf("%x\n", current_dynamic_memory->blocks[i].size);
-	}
-	printf("%x\n", current_dynamic_memory->blocks);
-	printf("%s\n", "complete");
+	// for (int i = 0; i < current_dynamic_memory->block_count; i++)
+	// {
+	// 	printf("%x\n", current_dynamic_memory->blocks[i].base);
+	// 	printf("%x\n", current_dynamic_memory->blocks[i].size);
+	// }
+	// printf("%x\n", current_dynamic_memory->blocks);
+	// printf("%s\n", "complete");
 }

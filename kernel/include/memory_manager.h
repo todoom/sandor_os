@@ -22,7 +22,6 @@
 #define PAGE_MODIFIED		(1 << 6)
 #define PAGE_GLOBAL		    (1 << 8)
 
-extern uint32_t KERNEL_ADDRESS_SPACE[];
 extern uint32_t KERNEL_BASE_VMA[];
 extern uint32_t KERNEL_BASE_LMA[];
 extern uint32_t KERNEL_CODE_BASE[];
@@ -82,16 +81,26 @@ typedef struct
 	size_t heap_size;
 } DynamicMemory;
 
+typedef physaddr* page_directory_t;
+
 typedef struct {
-	physaddr page_dir;
+	page_directory_t page_dir;
 	void *start;
 	void *end;
 	VirtMemory virt_memory;
 	DynamicMemory dynamic_memory;
 } AddressSpace;
 
+extern void flush_cr3(physaddr pd);
+
 extern AddressSpace *current_address_space;
+extern AddressSpace kernel_address_space;
+extern AddressSpace user_address_space;
+
 extern void init_memory_manager(multiboot_uint32_t memory_map) asm ("init_memory_manager");
+
+page_directory_t clone_directory(page_directory_t pd);
+extern void change_address_space(AddressSpace *address_space) asm ("change_address_space");
 
 void temp_map_page(physaddr addr) asm ("temp_map_page");
 physaddr get_physaddr(void *vaddr) asm ("get_physaddr");

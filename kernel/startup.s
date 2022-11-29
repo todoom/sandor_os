@@ -99,7 +99,6 @@ _start:
 
 section ".text" executable
 public flush_gdtr
-extrn _gp
 flush_gdtr:
 	pop ebx
 	pop eax
@@ -122,6 +121,14 @@ flush_tss:
 	pop eax
 	push ebx
 	ltr [eax]	
+	ret
+
+public flush_cr3
+flush_cr3:
+	pop ebx
+	pop eax
+	push ebx
+	mov cr3, eax
 	ret
 
 section ".bss"
