@@ -516,22 +516,34 @@ void change_address_space(AddressSpace *address_space)
 	flush_cr3(cur_address_space->page_dir);
 }
 
-page_directory_t clone_directory(page_directory_t pd)
+page_directory_t clone_directory(page_directory_t src)
 {
 	page_directory_t clone_dir = alloc_phys_pages(1);
-	void *cloneable_dir = alloc_virt_pages(NULL, pd, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	page_directory_t cloneable_dir = alloc_virt_pages(NULL, src, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	
 	temp_map_page(clone_dir);	
-	memcpy(TEMP_PAGE, cloneable_dir, PAGE_SIZE);
-
-	// for (size_t i = 0; i < 1024; i++)
-	// {
-	// 	if (kernel_address_space->page_dir)
-	// }
+	memset(TEMP_PAGE, 0, 0x1000);
+	for (size_t i = 0; i < 1024; i++)
+	{
+		if (kernel_address_space.page_dir[i] == cloneable_dir[i])
+		{
+			((page_directory_t*)TEMP_PAGE)[i] = cloneable_dir[i];
+		}
+		else
+		{
+			//TODO
+		}
+	}
 
 	del_virt_block(cloneable_dir);
 	unmap_pages(cloneable_dir, 1);
 
 	return clone_dir;
+}
+
+AddressSpace* create_address_space()
+{
+	
 }
 /*
 void* kmalloc(size_t size)

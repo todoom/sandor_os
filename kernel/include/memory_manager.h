@@ -81,7 +81,8 @@ typedef struct
 	size_t heap_size;
 } DynamicMemory;
 
-typedef physaddr* page_directory_t;
+typedef physaddr* page_table_t;
+typedef page_table_t* page_directory_t;
 
 typedef struct {
 	page_directory_t page_dir;

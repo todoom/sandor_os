@@ -85,6 +85,7 @@ _start:
 	sub eax, ebx
 	mov cr3, eax
 
+	cli
 	mov eax, cr0
 	or eax, 0x80000000
 	mov cr0, eax
@@ -93,6 +94,7 @@ _start:
 	push [multiboot_info]
 	
 	call kernel_main
+	cli
 @@:
  	hlt
 	jmp @b
