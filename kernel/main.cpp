@@ -9,7 +9,6 @@
 #include "include/gdt.h"
 
 extern void kernel_main(multiboot_info_t* mbd, uint32_t magic) asm("kernel_main");
-extern void default_handler();
 
 void kernel_main(multiboot_info_t* mbd, uint32_t magic) 
 {
@@ -19,6 +18,8 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_tty();
 	clear_screen();
 
-	asm("int $0");
+	asm("sti");
+	outportb(0x21, 0xfe);
 	printf("%s\n", "ok");
+	while(true){}
 }

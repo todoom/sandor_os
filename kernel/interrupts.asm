@@ -1,25 +1,24 @@
 format ELF
 use32
 
-section ".text" executable
+section '.text' executable
 
-public gen_intrrupt2
-gen_intrrupt2:
-	pop ebx
-	pop eax
-	push ebx
-	mov ebx, .do_int
-	mov [ebx + 1], eax
-	jmp .do_int
-.do_int:
-	int 0
+public handler_wrapper_template
+public call_handler_offset
+public call_size
+public wrapper_size
 
-public default_handler
-extrn _default_handler
-default_handler:
-	pusha
-	
-	call _default_handler
+handler_wrapper_template:
+	pushad
 
-	popa
-	iret
+start_call:
+	call dword start_call
+end_call:
+
+	popad
+	iretd 
+
+
+wrapper_size dd $ - handler_wrapper_template
+call_handler_offset dd start_call - handler_wrapper_template
+call_size dd end_call - start_call

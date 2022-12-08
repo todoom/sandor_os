@@ -14,23 +14,14 @@ typedef struct {
 	void *base;
 } __attribute__((packed)) IDTR;
 
-// #define IRQ_HANDLER(name) void name(){ \
-// 	asm(#name ": pusha \n \
-// 				 call __" #name " \n \
-// 				 movb $0x20, %al \n \
-// 				 outb %al, $0x20 \n \
-// 				 outb %al, $0xA0 \n \
-// 				 popa \n \
-// 				 iret");} \
-// 	void _ ## name()
+extern void handler_wrapper_template() asm("handler_wrapper_template");
+extern size_t wrapper_size;
+extern size_t call_handler_offset;
+extern size_t call_size;
 
-extern void default_handler();
-
-
-void gen_interrupt(int i ) asm("gen_interrupt");
-
+void default_handler();
+void gen_interrupt(int i) asm("gen_interrupt");
 void init_interrupts() asm("init_interrupts");
 void set_int_handler(uint8_t index, uint16_t sel, void *handler, uint8_t type) asm("set_int_handler");
-void _default_handler() asm("_default_handler");
 
 #endif

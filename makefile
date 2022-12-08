@@ -1,6 +1,6 @@
 all: assembly_os create_iso run
 
-assembly_os: main.o startup.o stdlib.o tty.o interrupts.o memory_manager.o shell.o ATA.o gdt.o tss.o PIC.o PIT.o
+assembly_os: main.o startup.o stdlib.o tty.o interrupts.o interrupts2.o memory_manager.o shell.o ATA.o gdt.o tss.o PIC.o PIT.o
 	i386-elf-ld -T script.ld -o bin/kernel.elf startup.o main.o stdlib.o tty.o interrupts.o interrupts2.o memory_manager.o shell.o ATA.o gdt.o tss.o PIT.o PIC.o
 	rm -rf *.o 
 
@@ -18,6 +18,8 @@ tty.o: kernel/tty.c
 
 interrupts.o: kernel/interrupts.c
 	i386-elf-gcc -c -m32 -ffreestanding -nostdlib -o interrupts.o kernel/interrupts.c 
+	
+interrupts2.o: kernel/interrupts.asm
 	fasm kernel/interrupts.asm interrupts2.o
 
 memory_manager.o: kernel/memory_manager.c
