@@ -40,9 +40,7 @@
 
 #define GDT_ACCESS_DATA_PL3 SEG_DESCTYPE(1) | SEG_PRES(1) | SEG_PRIV(3) | SEG_DATA_RDWR
 
-extern struct gdt_ptr _gp;
-
-extern void flush_gdtr(physaddr gdtr);
+void flush_gdtr(physaddr gdtr);
 extern void create_descriptor(uint16_t num, uint32_t base, \
 				 uint32_t limit, uint8_t access, uint8_t flags) asm("create_descriptor");
 

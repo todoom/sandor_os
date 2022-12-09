@@ -1,12 +1,16 @@
 #include "include/PIT.h"
+#include "include/PIC.h"
 #include "include/stdlib.h"
 
 void init_PIT()
 {
-	outportb(0x43, 0x36);
+	outportb(0x43, 0x34);
 	outportb(0x40, 0xff);
 	outportb(0x40, 0xff);	
-	set_int_handler(0, 8, timer_handler, 0x8e);
+	set_int_handler(IRQ_0, 8, timer_handler, 0x8e);
+	int i;
+	inportb(PIC_1_DATA, i);
+	outportb(PIC_1_DATA, i & ~1);
 }
 void timer_handler()
 {

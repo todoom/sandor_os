@@ -18,6 +18,20 @@ void create_descriptor(uint16_t num, uint32_t base, \
 	gdt[num].granularity |= (flags << 4);
 }
 
+void flush_gdtr(physaddr gdtr)
+{
+	asm("lgdt (,%0,) \n"
+		"movw $0x10, %%ax \n"
+		"movw %%ax, %%ds \n"
+		"movw %%ax, %%es \n"
+		"movw %%ax, %%fs \n"
+		"movw %%ax, %%gs \n"
+		"movw %%ax, %%ss \n"
+		"ljmp $0x8, $flush \n"
+		"flush: \n"
+		::"a"(gdtr));
+}
+
 void gdt_install()
 {
 	_gp.limit = (sizeof(struct gdt_entry) * 6) - 1;

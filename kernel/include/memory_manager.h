@@ -92,7 +92,7 @@ typedef struct {
 	DynamicMemory dynamic_memory;
 } AddressSpace;
 
-extern void flush_cr3(physaddr pd);
+void flush_cr3(physaddr pd);
 
 extern AddressSpace *current_address_space;
 extern AddressSpace kernel_address_space;

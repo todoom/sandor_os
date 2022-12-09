@@ -7,7 +7,7 @@
 #pragma pack (push, 1)
 #endif
 
-extern void flush_tss(uint32_t sel) asm("flush_tss");
+void flush_tss(uint32_t sel);
 extern void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP) asm("tss_install");
 
 struct tss_entry {

@@ -510,6 +510,11 @@ bool kfree(void* ptr)
 	return false;
 }
 
+void flush_cr3(physaddr pd)
+{
+	asm("movl %%eax, %%cr3"::"a"(pd));
+}
+
 void change_address_space(AddressSpace *address_space)
 {
 	cur_address_space = address_space;

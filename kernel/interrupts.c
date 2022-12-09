@@ -15,7 +15,7 @@ void init_interrupts()
 	IDTR idtr = {256 * sizeof(IntDesc), idt};
 	asm("lidt (,%0,)"::"a"(&idtr));
 
-	for (int i = 1; i < 256; i++)
+	for (int i = 0; i < 256; i++)
 	{
 		set_int_handler(i, 8, default_handler, 0x8E);
 	}	
@@ -26,6 +26,7 @@ void init_interrupts()
 
 void set_int_handler(uint8_t index, uint16_t sel, void *handler, uint8_t type) 
 {
+	asm("cli");
 	idt[index].selector = sel;
 	idt[index].type = type;
 	idt[index].reserved = 0;
@@ -51,5 +52,4 @@ void gen_interrupt(int i)
 
 void default_handler()
 {
-	printf("%s\n", "default_handler");
 }

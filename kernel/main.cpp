@@ -19,7 +19,5 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	clear_screen();
 
 	asm("sti");
-	outportb(0x21, 0xfe);
 	printf("%s\n", "ok");
-	while(true){}
 }

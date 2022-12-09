@@ -3,6 +3,11 @@
 
 struct tss_entry TSS;
 
+void flush_tss(uint32_t sel)
+{
+	asm("lgdt (,%0,) \n"::"r"(sel));
+}
+
 void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP)
 {
 	uint32_t base = (uint32_t)&TSS;
@@ -20,6 +25,7 @@ void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP)
 	TSS.ds = 0x13;
 	TSS.fs = 0x13;
 	TSS.gs = 0x13;
+	
 
-	flush_tss(idx * sizeof(struct gdt_entry));
+	flush_tss(idx * sizeof(struct gdt_entry));	
 }

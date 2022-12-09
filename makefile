@@ -37,6 +37,9 @@ gdt.o: kernel/gdt.c
 tss.o: kernel/tss.c
 	i386-elf-gcc -c -m32 -ffreestanding -nostdlib -o tss.o kernel/tss.c  
 
+tss2.o: kernel/tss.asm
+	fasm kernel/tss.asm tss2.o  
+
 PIC.o: kernel/PIC.c
 	i386-elf-gcc -c -m32 -ffreestanding -nostdlib -o PIC.o kernel/PIC.c
 

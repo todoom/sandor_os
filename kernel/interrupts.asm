@@ -14,7 +14,11 @@ handler_wrapper_template:
 start_call:
 	call dword start_call
 end_call:
-
+	
+	mov al, 0x20
+	out 0x20, al
+	out 0xa0, al
+	
 	popad
 	iretd 
 

@@ -94,44 +94,9 @@ _start:
 	push [multiboot_info]
 	
 	call kernel_main
-	cli
 @@:
  	hlt
 	jmp @b
-
-section ".text" executable
-public flush_gdtr
-flush_gdtr:
-	pop ebx
-	pop eax
-	push ebx
-	lgdt [eax]
-	mov ax, 0x10
-	mov ds, ax
-	mov es, ax
-	mov fs, ax
-	mov gs, ax
-	mov ss, ax
-
-	jmp 0x8:flush
-flush:
-	ret	
-
-public flush_tss
-flush_tss:
-	pop ebx
-	pop eax
-	push ebx
-	ltr [eax]	
-	ret
-
-public flush_cr3
-flush_cr3:
-	pop ebx
-	pop eax
-	push ebx
-	mov cr3, eax
-	ret
 
 section ".bss"
 align 4                                   
