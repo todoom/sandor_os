@@ -5,6 +5,8 @@ void init_PIC()
 {
 	init_master_PIC();
 	init_slave_PIC();
+
+	outportb(PIC_1_DATA, ~0);
 }
 
 void init_master_PIC()

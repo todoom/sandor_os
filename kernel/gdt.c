@@ -32,6 +32,8 @@ void flush_gdtr(physaddr gdtr)
 		::"a"(gdtr));
 }
 
+
+
 void gdt_install()
 {
 	_gp.limit = (sizeof(struct gdt_entry) * 6) - 1;

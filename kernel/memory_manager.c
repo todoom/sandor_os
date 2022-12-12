@@ -515,6 +515,23 @@ void flush_cr3(physaddr pd)
 	asm("movl %%eax, %%cr3"::"a"(pd));
 }
 
+void enter_usermode()
+{
+	asm("cli \n"
+		"movl $0x23, %eax \n"
+		"movl %eax, %ds \n"
+		"movl %eax, %es \n"
+		"movl %eax, %fs \n"
+		"movl %eax, %gs \n"
+		// "movl %eax, %ss \n"
+		"pushfl \n"
+		"push 0x1b \n"
+		"movl $a, %eax \n"
+		"push %eax \n"
+		"iretl \n"
+		"a: addl $4, %esp");
+}
+
 void change_address_space(AddressSpace *address_space)
 {
 	cur_address_space = address_space;
@@ -548,7 +565,12 @@ page_directory_t clone_directory(page_directory_t src)
 
 AddressSpace* create_address_space()
 {
-	
+	// AddressSpace *new_address_space = kmalloc(sizeof(AddressSpace));
+	// new_address_space.page_dir = clone_directory(kernel_address_space.page_dir);
+	// new_address_space.start = USER_ADDRESS_SPACE_START;
+	// new_address_space.end = USER_ADDRESS_SPACE_END;
+	// new_address_space.virt_memory = kernel_address_space.virt_memory;
+	// new_address_space.dynamic_memory = kernel_address_space.dynamic_memory;
 }
 /*
 void* kmalloc(size_t size)

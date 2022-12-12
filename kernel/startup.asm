@@ -28,6 +28,7 @@ _start:
 	mov dword[multiboot_header_magic], eax
 
 	mov esp, kernel_stack + KERNEL_STACK_SIZE
+	mov ebp, esp
 	mov ebx, esp
 	
 	; ebx = VMA - LMA

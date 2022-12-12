@@ -98,10 +98,12 @@ extern AddressSpace *current_address_space;
 extern AddressSpace kernel_address_space;
 extern AddressSpace user_address_space;
 
-extern void init_memory_manager(multiboot_uint32_t memory_map) asm ("init_memory_manager");
+void init_memory_manager(multiboot_uint32_t memory_map) asm ("init_memory_manager");
+
+void enter_usermode() asm("enter_usermode");
 
 page_directory_t clone_directory(page_directory_t pd);
-extern void change_address_space(AddressSpace *address_space) asm ("change_address_space");
+void change_address_space(AddressSpace *address_space) asm ("change_address_space");
 
 void temp_map_page(physaddr addr) asm ("temp_map_page");
 physaddr get_physaddr(void *vaddr) asm ("get_physaddr");

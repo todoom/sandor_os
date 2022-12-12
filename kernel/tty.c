@@ -4,7 +4,7 @@
 #include "include/interrupts.h"
 #include "include/scancodes.h"
 #include "include/memory_manager.h"
-
+#include "include/PIC.h"
 
 typedef struct {
 	uint8_t chr;
@@ -26,6 +26,7 @@ unsigned int key_buffer_tail;
 void keyboard_int_handler();
 uint8_t in_scancode();
 char in_char();
+void enable_keyboard();
 
 void init_tty() {
 	tty_buffer = alloc_virt_pages(NULL, 0xb8000, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
@@ -37,8 +38,15 @@ void init_tty() {
 	text_attr = 7;
 	key_buffer_head = 0;
 	key_buffer_tail = 0;
-	//set_int_handler(irq_base + 1, keyboard_int_handler, 0x8E);
+	set_int_handler(IRQ_0 + 1, 8, keyboard_int_handler, 0x8E);
+	enable_keyboard();
+}
 
+void enable_keyboard()
+{
+	int i;
+	inportb(PIC_1_DATA, i);
+	outportb(PIC_1_DATA, i & ~2);
 }
 
 void out_char(char chr) {
@@ -135,7 +143,8 @@ void printf(char *fmt, ...) {
 	va_end(args);
 }
 
-/*IRQ_HANDLER(keyboard_int_handler) {
+void keyboard_int_handler() 
+{
 	uint8_t key_code;
 	inportb(0x60, key_code);
 	if (key_buffer_tail >= KEY_BUFFER_SIZE) {
@@ -147,7 +156,7 @@ void printf(char *fmt, ...) {
 	inportb(0x61, status);
 	status |= 1;
 	outportb(0x61, status);
-} */
+} 
 
 uint8_t in_scancode()
 {

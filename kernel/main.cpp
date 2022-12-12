@@ -18,6 +18,6 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 	init_tty();
 	clear_screen();
 
-	asm("sti");
-	printf("%s\n", "ok");
+	change_address_space(&user_address_space);
+	enter_usermode();
 }
