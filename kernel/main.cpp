@@ -7,6 +7,8 @@
 #include "include/ATA.h"
 #include "include/multiboot.h"
 #include "include/gdt.h"
+#include "include/PIT.h"
+
 
 extern void kernel_main(multiboot_info_t* mbd, uint32_t magic) asm("kernel_main");
 
@@ -20,4 +22,5 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 
 	change_address_space(&user_address_space);
 	enter_usermode();
+	gen_interrupt(0); // Падает при выполнении int
 }

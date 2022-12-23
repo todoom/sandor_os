@@ -5,7 +5,7 @@ struct tss_entry TSS;
 
 void flush_tss(uint32_t sel)
 {
-	asm("lgdt (,%0,) \n"::"r"(sel));
+	asm("ltr (,%0,) \n"::"r"(sel));
 }
 
 void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP)

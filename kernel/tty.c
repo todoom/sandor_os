@@ -29,8 +29,8 @@ char in_char();
 void enable_keyboard();
 
 void init_tty() {
-	tty_buffer = alloc_virt_pages(NULL, 0xb8000, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-	void *vaddr = alloc_virt_pages(NULL, 0, 1, PAGE_PRESENT | PAGE_WRITABLE);
+	tty_buffer = alloc_virt_pages(NULL, 0xb8000, 1, 0xfff);
+	void *vaddr = alloc_virt_pages(NULL, 0, 1, 0xfff);
 	tty_width = *((uint16_t*)(0x44A + (size_t)vaddr));
 	tty_height = 25;
 	tty_io_port = *((uint16_t*)(0x463 + (size_t)vaddr));

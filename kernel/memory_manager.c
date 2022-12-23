@@ -50,9 +50,9 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	kernel_address_space.virt_memory.blocks = (VirtMemoryBlock*)KERNEL_VIRT_BLOCK_TABLE;
 	kernel_address_space.virt_memory.table_size = 1;
 
-	map_pages(kernel_address_space.virt_memory.blocks, alloc_phys_pages(kernel_address_space.virt_memory.table_size), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
-	map_pages(KERNEL_BASE_VMA, KERNEL_BASE_LMA, ((size_t)KERNEL_END - (size_t)KERNEL_BASE_VMA) >> PAGE_OFFSET_BITS, PAGE_PRESENT | PAGE_GLOBAL);	
-	map_pages(TEMP_PAGE, (physaddr)0x0, 1, PAGE_PRESENT | PAGE_GLOBAL);	
+	map_pages(kernel_address_space.virt_memory.blocks, alloc_phys_pages(kernel_address_space.virt_memory.table_size), 1, 0xfff);
+	//map_pages(KERNEL_BASE_VMA, KERNEL_BASE_LMA, ((size_t)KERNEL_END - (size_t)KERNEL_BASE_VMA) >> PAGE_OFFSET_BITS, PAGE_PRESENT | PAGE_GLOBAL);	
+	map_pages(TEMP_PAGE, (physaddr)0x0, 1, 0xfff);	
 
 	kernel_address_space.virt_memory.blocks[kernel_address_space.virt_memory.block_count].base = ((size_t)KERNEL_BASE_VMA);
 	kernel_address_space.virt_memory.blocks[kernel_address_space.virt_memory.block_count].size = ((size_t)KERNEL_END - (size_t)KERNEL_BASE_VMA) >> PAGE_OFFSET_BITS;
@@ -69,9 +69,9 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	//dynamic memory initialize
 	kernel_address_space.dynamic_memory.block_count = 0;
 	kernel_address_space.dynamic_memory.table_size = 1;
-	kernel_address_space.dynamic_memory.blocks = alloc_virt_pages(NULL, -1, kernel_address_space.dynamic_memory.table_size, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	kernel_address_space.dynamic_memory.blocks = alloc_virt_pages(NULL, -1, kernel_address_space.dynamic_memory.table_size, 0xfff);
 	kernel_address_space.dynamic_memory.heap_size = 10;
-	kernel_address_space.dynamic_memory.heap = alloc_virt_pages(NULL, -1, kernel_address_space.dynamic_memory.heap_size, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	kernel_address_space.dynamic_memory.heap = alloc_virt_pages(NULL, -1, kernel_address_space.dynamic_memory.heap_size, 0xfff);
 	
 	//user address space initialize
 	user_address_space.page_dir = clone_directory(kernel_address_space.page_dir);
@@ -79,7 +79,6 @@ void init_memory_manager(multiboot_uint32_t memory_map)
 	user_address_space.end = USER_ADDRESS_SPACE_END;
 	user_address_space.virt_memory = kernel_address_space.virt_memory;
 	user_address_space.dynamic_memory = kernel_address_space.dynamic_memory;
-
 }
 
 static inline void flush_page_cache(void *addr) 
@@ -89,7 +88,7 @@ static inline void flush_page_cache(void *addr)
 
 void temp_map_page(physaddr page) 
 {
-	*((physaddr*)TEMP_PAGE_INFO) = (page & ~PAGE_OFFSET_MASK) | PAGE_PRESENT | PAGE_WRITABLE;
+	*((physaddr*)TEMP_PAGE_INFO) = (page & ~PAGE_OFFSET_MASK) | 0xfff;
 	flush_page_cache((void*)TEMP_PAGE);
 }
 
@@ -373,7 +372,7 @@ void* alloc_virt_pages(void *vaddr, physaddr paddr, size_t count, unsigned int f
 		void *new_table = add_virt_block(cur_virt_memory->table_size);
 		for (int i = 0; i < cur_virt_memory->table_size; i++)
 		{
-			map_pages(new_table + i * PAGE_SIZE, alloc_phys_pages(1), 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+			map_pages(new_table + i * PAGE_SIZE, alloc_phys_pages(1), 1, 0xfff);
 		}
 		memcpy(new_table, old_table, (cur_virt_memory->table_size - 1) << PAGE_OFFSET_BITS);
 		for (int i = 0; i < cur_virt_memory->table_size - 1; i++)
@@ -434,7 +433,7 @@ void* kmalloc(size_t size)
 	{
 		size_t old_table_size = cur_dynamic_memory->table_size;
 		void *old_table = cur_dynamic_memory->blocks;
-		void *new_table = alloc_virt_pages(NULL, -1, old_table_size + 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+		void *new_table = alloc_virt_pages(NULL, -1, old_table_size + 1, 0xfff);
 
 		if (new_table == NULL) return NULL;
 		memcpy(new_table, old_table, old_table_size << PAGE_OFFSET_BITS);
@@ -526,6 +525,9 @@ void enter_usermode()
 		"push $0x23 \n"
 		"push %esp \n"
 		"pushfl \n"
+		"pop %eax \n"
+		"or $0x200, %eax \n"
+		"push %eax \n"
 		"push $0x1b \n"
 		"movl $a, %eax \n"
 		"push %eax \n"
@@ -542,7 +544,7 @@ void change_address_space(AddressSpace *address_space)
 page_directory_t clone_directory(page_directory_t src)
 {
 	page_directory_t clone_dir = alloc_phys_pages(1);
-	page_directory_t cloneable_dir = alloc_virt_pages(NULL, src, 1, PAGE_PRESENT | PAGE_WRITABLE | PAGE_GLOBAL);
+	page_directory_t cloneable_dir = alloc_virt_pages(NULL, src, 1, 0xfff);
 	
 	temp_map_page(clone_dir);	
 	memset(TEMP_PAGE, 0, 0x1000);

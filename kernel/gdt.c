@@ -3,7 +3,6 @@
 #include "include/gdt.h"
 #include "include/tss.h"
 
-
 struct gdt_entry gdt[6];
 struct gdt_ptr _gp;
 
@@ -32,8 +31,6 @@ void flush_gdtr(physaddr gdtr)
 		::"a"(gdtr));
 }
 
-
-
 void gdt_install()
 {
 	_gp.limit = (sizeof(struct gdt_entry) * 6) - 1;
@@ -46,8 +43,6 @@ void gdt_install()
 
 	create_descriptor(3, 0, 0xFFFFFFFF, GDT_ACCESS_CODE_PL3, GDT_FLAGS); 
 	create_descriptor(4, 0, 0xFFFFFFFF, GDT_ACCESS_DATA_PL3, GDT_FLAGS); 
-
-	// tss_install(5, 0, 0);
 
 	flush_gdtr(get_physaddr((void*)(&_gp)));
 }

@@ -45,7 +45,7 @@ _start:
 	mov ecx, 1024
 	mov edi, temp_page_table
 	sub edi, ebx
-	mov eax, 11b
+	mov eax, 0xFFF
 @@:
 	stosd
 	add eax, 0x1000
@@ -76,7 +76,7 @@ _start:
 	add edi, kernel_page_table
 	sub edi, ebx
 	mov eax, KERNEL_BASE_LMA
-	add eax, 11b
+	add eax, 0xFF
 @@:
 	stosd
 	add eax, 0x1000
@@ -96,7 +96,7 @@ _start:
 	
 	call kernel_main
 @@:
- 	hlt
+	nop
 	jmp @b
 
 section ".bss"
