@@ -27,5 +27,4 @@ void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP)
 	TSS.gs = 0x13;
 	
 
-	flush_tss(idx * sizeof(struct gdt_entry));	
 }

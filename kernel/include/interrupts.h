@@ -18,6 +18,7 @@ extern void handler_wrapper_template() asm("handler_wrapper_template");
 extern size_t wrapper_size;
 extern size_t call_handler_offset;
 extern size_t call_size;
+extern IntDesc *idt;
 
 void default_handler();
 void gen_interrupt(int i) asm("gen_interrupt");

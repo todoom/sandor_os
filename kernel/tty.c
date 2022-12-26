@@ -39,7 +39,7 @@ void init_tty() {
 	key_buffer_head = 0;
 	key_buffer_tail = 0;
 	set_int_handler(IRQ_0 + 1, 8, keyboard_int_handler, 0x8E);
-	enable_keyboard();
+	//enable_keyboard();
 }
 
 void enable_keyboard()

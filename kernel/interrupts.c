@@ -17,7 +17,7 @@ void init_interrupts()
 
 	for (int i = 0; i < 256; i++)
 	{
-		set_int_handler(i, 8, default_handler, 0x8E);
+		set_int_handler(i, 8, default_handler, 0xEE);
 	}	
 
 	init_PIC();

@@ -8,6 +8,7 @@
 #include "include/multiboot.h"
 #include "include/gdt.h"
 #include "include/PIT.h"
+#include "include/task.h"
 
 
 extern void kernel_main(multiboot_info_t* mbd, uint32_t magic) asm("kernel_main");
@@ -22,5 +23,8 @@ void kernel_main(multiboot_info_t* mbd, uint32_t magic)
 
 	change_address_space(&user_address_space);
 	enter_usermode();
-	gen_interrupt(0); // Падает при выполнении int
+
+	// gen_interrupt(0);
+	// void (*func)() = (void(*)())0x8000d000;
+	// func();
 }

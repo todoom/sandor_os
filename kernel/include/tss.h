@@ -3,10 +3,6 @@
 
 #include "stdlib.h"
 
-#ifdef _MSC_VER
-#pragma pack (push, 1)
-#endif
-
 void flush_tss(uint32_t sel);
 extern void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP) asm("tss_install");
 
@@ -39,9 +35,5 @@ struct tss_entry {
 	uint16_t trap;
 	uint16_t iomap;
 };
-
-#ifdef _MSC_VER
-#pragma pack (pop, 1)
-#endif
 
 #endif

@@ -1,10 +1,10 @@
 #include "include/tty.h"
 #include "include/memory_manager.h"
 #include "include/gdt.h"
-#include "include/tss.h"
 
 struct gdt_entry gdt[6];
 struct gdt_ptr _gp;
+struct tss_entry TSS;
 
 void create_descriptor(uint16_t num, uint32_t base, \
 				 uint32_t limit, uint8_t access, uint8_t flags)
@@ -31,6 +31,30 @@ void flush_gdtr(physaddr gdtr)
 		::"a"(gdtr));
 }
 
+void flush_tss(uint32_t sel)
+{
+	asm("ltr (,%0,) \n"::"r"(sel));
+}
+
+void tss_install(uint32_t idx, uint16_t kernelSS, uint16_t kernelESP)
+{
+	uint32_t base = (uint32_t)&TSS;
+
+	create_descriptor(idx, get_physaddr(base), get_physaddr(sizeof(struct tss_entry)), 0x89, 0x0);
+
+	memset ((void*) &TSS, 0, sizeof (struct tss_entry));
+
+	TSS.ss0 = kernelSS;
+	TSS.esp0 = kernelESP;
+
+	TSS.cs = 0x0b;
+	TSS.ss = 0x13;
+	TSS.es = 0x13;
+	TSS.ds = 0x13;
+	TSS.fs = 0x13;
+	TSS.gs = 0x13;
+}
+
 void gdt_install()
 {
 	_gp.limit = (sizeof(struct gdt_entry) * 6) - 1;
@@ -43,6 +67,8 @@ void gdt_install()
 
 	create_descriptor(3, 0, 0xFFFFFFFF, GDT_ACCESS_CODE_PL3, GDT_FLAGS); 
 	create_descriptor(4, 0, 0xFFFFFFFF, GDT_ACCESS_DATA_PL3, GDT_FLAGS); 
+	tss_install(5, 0x10, 0);
 
 	flush_gdtr(get_physaddr((void*)(&_gp)));
+	flush_tss(0x2b);	
 }
